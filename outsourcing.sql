@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Servidor: 127.0.0.1
--- Tiempo de generación: 08-11-2024 a las 16:27:59
+-- Tiempo de generación: 08-11-2024 a las 16:34:29
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -22,84 +22,6 @@ SET time_zone = "+00:00";
 --
 CREATE DATABASE IF NOT EXISTS `outsourcing` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;
 USE `outsourcing`;
-
-DELIMITER $$
---
--- Procedimientos
---
-CREATE DEFINER=`root`@`localhost` PROCEDURE `obtenerDatosEmpresa` (IN `empresaId` INT)   BEGIN
-    
-    DECLARE vacantes_activas INTEGER;
-    DECLARE total_candidatos INTEGER;
-    DECLARE aplicaciones_por_revisar INTEGER;
-
-    
-    
-    SET vacantes_activas = (
-        SELECT COUNT(*)
-        FROM Vacante
-        WHERE empresa = empresaId AND fechaCierre > CURDATE()
-    );
-
-    
-    SET total_candidatos = (
-        SELECT COUNT(DISTINCT Solicitud.prospecto)
-        FROM Solicitud
-        INNER JOIN Vacante ON Solicitud.vacante = Vacante.numero
-        WHERE Vacante.empresa = empresaId
-    );
-
-    
-    SET aplicaciones_por_revisar = (
-        SELECT COUNT(*)
-        FROM Solicitud
-        INNER JOIN Vacante ON Solicitud.vacante = Vacante.numero
-        WHERE Vacante.empresa = empresaId
-          AND Solicitud.estatus = 'PEND'
-          AND Solicitud.es_cancelada = FALSE
-    );
-
-    
-    SELECT vacantes_activas AS VacantesActivas,
-           total_candidatos AS TotalCandidatos,
-           aplicaciones_por_revisar AS AplicacionesPorRevisar;
-END$$
-
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SP_calcularDiasVacante` (IN `p_numeroVacante` INT, OUT `p_diasRestantes` INT)   BEGIN
-    DECLARE fechaCierre DATE;
-
-    
-    SELECT fechaCierre INTO fechaCierre
-    FROM Vacante
-    WHERE numero = p_numeroVacante;
-
-    
-    SET p_diasRestantes = DATEDIFF(fechaCierre, CURDATE());
-
-    
-    IF p_diasRestantes < 0 THEN
-        SET p_diasRestantes = 0;
-    END IF;
-END$$
-
-CREATE DEFINER=`root`@`localhost` PROCEDURE `SP_calcularEdad` (IN `p_numero` INT, OUT `p_edad` INT)   BEGIN
-    DECLARE fechaNacimiento DATE;
-
-    
-    SELECT fechaNacimiento INTO fechaNacimiento
-    FROM Prospecto
-    WHERE numero = p_numero;
-
-    
-    SET p_edad = TIMESTAMPDIFF(YEAR, fechaNacimiento, CURDATE());
-
-    
-    IF DATE_FORMAT(CURDATE(), '%m-%d') < DATE_FORMAT(fechaNacimiento, '%m-%d') THEN
-        SET p_edad = p_edad - 1;
-    END IF;
-END$$
-
-DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -240,21 +162,6 @@ INSERT INTO `empresa` (`numero`, `nombre`, `ciudad`, `calle`, `numeroCalle`, `co
 (2, 'Microsoft', 'Tijuana', 'Calle 5 de Mayo', 456, 'Zona Río', 22400, 'Ana', 'Martínez', 'López', 4, ''),
 (5, 'Monster', 'Tijuana', 'Calle Olivo', 123, 'Maclovio', 22236, 'Oscar', 'Soto', 'Garcia', 9, '6658787789');
 
---
--- Disparadores `empresa`
---
-DELIMITER $$
-CREATE TRIGGER `inicializarMembresia` AFTER INSERT ON `empresa` FOR EACH ROW BEGIN
-  INSERT INTO Membresia (fechaVencimiento, empresa, plan_suscripcion)
-  VALUES (
-    (CURRENT_DATE - INTERVAL 1 DAY),                  
-    NEW.numero,
-    'BAS01'                           
-  );
-END
-$$
-DELIMITER ;
-
 -- --------------------------------------------------------
 
 --
@@ -303,24 +210,6 @@ INSERT INTO `experiencia` (`numero`, `puesto`, `descripcion`, `nombreEmpresa`, `
 (4, 'Consultor IT', 'Asesoría en soluciones tecnológicas.', 'Tech Advisors', '2018-01-01', '2019-04-30', 2),
 (5, 'Asistente del gerente regional', 'Asistente del gerente regional para la empresa bitlab', 'BitLab', '2024-03-04', '2024-11-01', 1);
 
---
--- Disparadores `experiencia`
---
-DELIMITER $$
-CREATE TRIGGER `actualizarAniosExperiencia` AFTER INSERT ON `experiencia` FOR EACH ROW BEGIN
-    DECLARE anios DECIMAL(5,1);
-
-    
-    SET anios = TIMESTAMPDIFF(DAY, NEW.fechaInicio, NEW.fechaFin) / 365.0;
-
-    
-    UPDATE Prospecto
-    SET aniosExperiencia = IFNULL(aniosExperiencia, 0) + anios
-    WHERE numero = NEW.prospecto;
-END
-$$
-DELIMITER ;
-
 -- --------------------------------------------------------
 
 --
@@ -364,24 +253,6 @@ INSERT INTO `plan_suscripcion` (`codigo`, `duracion`, `precio`, `precioMensual`)
 ('BAS01', 1, 999.99, 999.99),
 ('PRE01', 6, 4999.99, 833.33),
 ('PRO01', 12, 8999.99, 750.00);
-
---
--- Disparadores `plan_suscripcion`
---
-DELIMITER $$
-CREATE TRIGGER `actualizarPrecioMensual` BEFORE UPDATE ON `plan_suscripcion` FOR EACH ROW BEGIN
-        
-        SET NEW.precioMensual = NEW.precio / NEW.duracion;
-    END
-$$
-DELIMITER ;
-DELIMITER $$
-CREATE TRIGGER `calcularPrecioMensual` BEFORE INSERT ON `plan_suscripcion` FOR EACH ROW BEGIN
-        
-        SET NEW.precioMensual = NEW.precio / NEW.duracion;
-    END
-$$
-DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -431,37 +302,6 @@ CREATE TABLE `renovacion` (
 INSERT INTO `renovacion` (`numero`, `fechaRenovacion`, `membresia`) VALUES
 (1, '2023-01-15', 1),
 (2, '2023-06-20', 2);
-
---
--- Disparadores `renovacion`
---
-DELIMITER $$
-CREATE TRIGGER `actualizarMembresia` AFTER INSERT ON `renovacion` FOR EACH ROW BEGIN
-    DECLARE nuevaFechaVencimiento DATE;
-    DECLARE duracionPlan INT;
-
-    
-    SET duracionPlan = (
-        SELECT duracion
-        FROM Plan_suscripcion
-        WHERE codigo = (SELECT plan_suscripcion FROM Membresia WHERE numero = NEW.membresia)
-    );
-
-    
-    SET nuevaFechaVencimiento = CASE
-        WHEN (SELECT fechaVencimiento FROM Membresia WHERE numero = NEW.membresia) < CURDATE() THEN
-            DATE_ADD(CURDATE(), INTERVAL duracionPlan MONTH)
-        ELSE
-            DATE_ADD((SELECT fechaVencimiento FROM Membresia WHERE numero = NEW.membresia), INTERVAL duracionPlan MONTH)
-    END;
-
-    
-    UPDATE Membresia
-    SET fechaVencimiento = nuevaFechaVencimiento
-    WHERE numero = NEW.membresia;
-END
-$$
-DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -564,19 +404,6 @@ INSERT INTO `solicitud` (`prospecto`, `vacante`, `estatus`, `es_cancelada`) VALU
 (1, 5, 'PEND', 0),
 (2, 1, 'PFRM', 0),
 (2, 2, 'RECH', 1);
-
---
--- Disparadores `solicitud`
---
-DELIMITER $$
-CREATE TRIGGER `actualizarCantPostulantes` AFTER INSERT ON `solicitud` FOR EACH ROW BEGIN
-    
-    UPDATE Vacante
-    SET cantPostulantes = cantPostulantes + 1
-    WHERE numero = NEW.vacante;
-END
-$$
-DELIMITER ;
 
 -- --------------------------------------------------------
 
