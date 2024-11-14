@@ -17,7 +17,7 @@ if (isset($_SESSION['user_id'])) {
     exit();
 }
 
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../Outsourcing/config.php');
 
 $error = '';
 
@@ -25,7 +25,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $correo = mysqli_real_escape_string($conexion, $_POST['correo']);
     $contrasenia = mysqli_real_escape_string($conexion, $_POST['contrasenia']);
     
-    $query = "SELECT numero, rol FROM Usuario WHERE correo = ? AND contrasenia = ?";
+    $query = "SELECT numero, rol FROM usuario WHERE correo = ? AND contrasenia = ?";
     $stmt = mysqli_prepare($conexion, $query);
     mysqli_stmt_bind_param($stmt, "ss", $correo, $contrasenia);
     mysqli_stmt_execute($stmt);
