@@ -2,7 +2,7 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "Outsourcing";
+$dbname = "outsourcing";
 
 // Intentar establecer la conexión
 $conexion = mysqli_connect($servername, $username, $password, $dbname);
