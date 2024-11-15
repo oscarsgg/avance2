@@ -1,7 +1,16 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
-require_once 'check_membership.php';
+
+echo 'hola1';
+
+include_once('../../../../Outsourcing/config.php');
+
+
+echo 'hola1';
+
+//include_once 'check_membership.php';
+
+echo 'hola1';
 
 // Verificar si el usuario está logueado y es una empresa
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
@@ -9,13 +18,18 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
     exit();
 }
 
+
+echo 'hola1';
+
 // Obtener información de la empresa
-$query_empresa = "SELECT * FROM Empresa WHERE usuario = ?";
+$query_empresa = "SELECT * FROM empresa WHERE usuario = ?";
 $stmt_empresa = mysqli_prepare($conexion, $query_empresa);
 mysqli_stmt_bind_param($stmt_empresa, "i", $_SESSION['user_id']);
 mysqli_stmt_execute($stmt_empresa);
 $resultado_empresa = mysqli_stmt_get_result($stmt_empresa);
 $empresa = mysqli_fetch_assoc($resultado_empresa);
+
+echo 'hola1';
 
 // Obtener estadísticas de la empresa
 $query_stats = "CALL obtenerDatosEmpresa(?)";
@@ -25,6 +39,8 @@ mysqli_stmt_execute($stmt_stats);
 $resultado_stats = mysqli_stmt_get_result($stmt_stats);
 $stats = mysqli_fetch_assoc($resultado_stats);
 
+echo 'hola1';
+
 // Cerrar el statement 
 mysqli_stmt_close($stmt_stats);
 while (mysqli_next_result($conexion)) {
@@ -33,11 +49,13 @@ while (mysqli_next_result($conexion)) {
     }
 }
 
+echo 'hola1';
+
 // Obtener solicitudes recientes
 $query_solicitudes = "SELECT s.*, p.nombre, p.primerApellido, p.segundoApellido, v.titulo
-                      FROM Solicitud s
-                      JOIN Prospecto p ON s.prospecto = p.numero
-                      JOIN Vacante v ON s.vacante = v.numero
+                      FROM solicitud s
+                      JOIN prospecto p ON s.prospecto = p.numero
+                      JOIN vacante v ON s.vacante = v.numero
                       WHERE v.empresa = ?
                       ORDER BY s.vacante DESC
                       LIMIT 5";
@@ -46,8 +64,12 @@ mysqli_stmt_bind_param($stmt_solicitudes, "i", $empresa['numero']);
 mysqli_stmt_execute($stmt_solicitudes);
 $resultado_solicitudes = mysqli_stmt_get_result($stmt_solicitudes);
 
+
+echo 'hola1';
+
+
 // Obtener vacantes recientes
-$query_vacantes = "SELECT * FROM Vacante WHERE empresa = ? ORDER BY fechaInicio DESC LIMIT 5";
+$query_vacantes = "SELECT * FROM vacante WHERE empresa = ? ORDER BY fechaInicio DESC LIMIT 5";
 $stmt_vacantes = mysqli_prepare($conexion, $query_vacantes);
 mysqli_stmt_bind_param($stmt_vacantes, "i", $empresa['numero']);
 mysqli_stmt_execute($stmt_vacantes);
