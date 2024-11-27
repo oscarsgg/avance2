@@ -29,10 +29,10 @@ $result_solicitudes = mysqli_query($conexion, $query_solicitudes);
 
 // Obtener las últimas vacantes
 $query_vacantes = "
-    SELECT v.numero, v.titulo, e.ciudad, e.colonia
+    SELECT v.numero, v.estado, v.titulo, e.ciudad, e.colonia
     FROM vacante as v
     INNER JOIN empresa as e ON v.empresa = e.numero
-    WHERE v.fechaCierre >= CURDATE()
+    WHERE v.fechaCierre >= CURDATE() AND v.fechaInicio <= CURDATE() AND v.estado = true
     ORDER BY v.fechaInicio DESC
     LIMIT 5
 ";

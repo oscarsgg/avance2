@@ -16,27 +16,6 @@ h2 {
     color: #000;
 }
 
-.signature-container {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 50px;
-}
-
-.signature-box {
-    text-align: center;
-}
-
-.signature-line {
-    border-bottom: 1px solid black;
-    width: 200px;
-    height: 50px;
-    margin: 0 auto;
-}
-
-#signatureCanvas {
-    border: 1px solid #000;
-}
-
 .modal {
     display: none;
     position: fixed;
@@ -419,7 +398,7 @@ button.btn-save-modal:hover {
 
 /* Modal de confirmación */
 #confirmSaveModal {
-    display: none; /* Oculto por defecto */
+    display: none;
     position: fixed;
     z-index: 1000;
     left: 0;

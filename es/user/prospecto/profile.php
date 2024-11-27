@@ -15,8 +15,8 @@ $error = '';
 $success = '';
 
 // Obtener los datos del prospecto
-$query = "SELECT p.*, u.correo FROM Prospecto p 
-          INNER JOIN Usuario u ON p.usuario = u.numero 
+$query = "SELECT p.*, u.correo FROM prospecto AS p 
+          INNER JOIN usuario AS u ON p.usuario = u.numero 
           WHERE u.numero = ?";
 $stmt = $conexion->prepare($query);
 $stmt->bind_param("i", $user_id);
@@ -39,8 +39,8 @@ $edad = $result->fetch_assoc()['edad'];
 
 // Obtener experiencia laboral
 $query_exp = "SELECT e.*, r.descripcion AS responsabilidad, r.numero AS responsabilidad_id
-              FROM Experiencia e 
-              LEFT JOIN Responsabilidades r ON e.numero = r.experiencia 
+              FROM experiencia as e 
+              LEFT JOIN responsabilidades as r ON e.numero = r.experiencia 
               WHERE e.prospecto = ?
               ORDER BY e.fechaInicio DESC, r.numero ASC";
 $stmt_exp = $conexion->prepare($query_exp);
@@ -155,7 +155,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 try {
                     // Obtener las experiencias existentes del prospecto
-                    $stmt = $conexion->prepare("SELECT numero FROM Experiencia WHERE prospecto = ?");
+                    $stmt = $conexion->prepare("SELECT numero FROM experiencia WHERE prospecto = ?");
                     $stmt->bind_param("i", $prospecto['numero']);
                     $stmt->execute();
                     $result = $stmt->get_result();
@@ -218,8 +218,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $exp_to_delete = array_diff($existing_exp_ids, $submitted_exp_ids);
                     if (!empty($exp_to_delete)) {
                         $exp_ids_str = implode(',', $exp_to_delete);
-                        $conexion->query("DELETE FROM Responsabilidades WHERE experiencia IN ($exp_ids_str)");
-                        $conexion->query("DELETE FROM Experiencia WHERE numero IN ($exp_ids_str) AND prospecto = {$prospecto['numero']}");
+                        $conexion->query("DELETE FROM responsabilidades WHERE experiencia IN ($exp_ids_str)");
+                        $conexion->query("DELETE FROM experiencia WHERE numero IN ($exp_ids_str) AND prospecto = {$prospecto['numero']}");
                     }
 
                     $conexion->commit();
@@ -237,7 +237,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 // Obtener todas las carreras para el buscador
-$query_all_carreras = "SELECT codigo, nombre FROM Carrera ORDER BY nombre";
+$query_all_carreras = "SELECT codigo, nombre FROM carrera ORDER BY nombre";
 $result_all_carreras = $conexion->query($query_all_carreras);
 $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
 

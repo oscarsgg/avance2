@@ -11,8 +11,8 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Obtener los datos del prospecto
-$query = "SELECT p.*, u.correo FROM Prospecto p 
-          INNER JOIN Usuario u ON p.usuario = u.numero 
+$query = "SELECT p.*, u.correo FROM prospecto AS p 
+          INNER JOIN usuario as u ON p.usuario = u.numero 
           WHERE u.numero = ?";
 $stmt = $conexion->prepare($query);
 $stmt->bind_param("i", $user_id);
@@ -35,8 +35,8 @@ $edad = $result->fetch_assoc()['edad'];
 
 // Obtener experiencia laboral
 $query_exp = "SELECT e.*, r.descripcion AS responsabilidad, r.numero AS responsabilidad_id
-              FROM Experiencia e 
-              LEFT JOIN Responsabilidades r ON e.numero = r.experiencia 
+              FROM experiencia as e 
+              LEFT JOIN responsabilidades as r ON e.numero = r.experiencia 
               WHERE e.prospecto = ?
               ORDER BY e.fechaInicio DESC, r.numero ASC";
 $stmt_exp = $conexion->prepare($query_exp);

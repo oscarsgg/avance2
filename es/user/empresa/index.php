@@ -34,12 +34,12 @@ while (mysqli_next_result($conexion)) {
 }
 
 // Obtener solicitudes recientes
-$query_solicitudes = "SELECT s.*, p.nombre, p.primerApellido, p.segundoApellido, v.titulo
+$query_solicitudes = "SELECT s.*, p.nombre, p.primerApellido, p.segundoApellido, v.titulo, s.fechaSolicitud, s.es_cancelada
                       FROM solicitud as s
                       INNER JOIN prospecto as p ON s.prospecto = p.numero
                       INNER JOIN vacante as v ON s.vacante = v.numero
-                      WHERE v.empresa = ?
-                      ORDER BY s.vacante DESC
+                      WHERE v.empresa = ? AND s.es_cancelada = false
+                      ORDER BY s.fechaSolicitud DESC
                       LIMIT 5";
 $stmt_solicitudes = mysqli_prepare($conexion, $query_solicitudes);
 mysqli_stmt_bind_param($stmt_solicitudes, "i", $empresa['numero']);

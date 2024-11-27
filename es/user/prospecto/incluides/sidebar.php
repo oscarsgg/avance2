@@ -405,7 +405,7 @@
                     </div>
                     <div class="user-details">
                         <p class="title">Experto en almejas</p>
-                        <p class="name">Almejandro</p>
+                        <p class="name">Bienvenido</p>
                     </div>
                 </div>
                 <div class="nav">

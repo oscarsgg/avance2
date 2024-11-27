@@ -237,6 +237,47 @@ td {
     color: #333; /* Texto en tono oscuro */
 }
 
+/* Add this to your existing CSS file (vacantes.css) */
+
+.status-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+    text-transform: capitalize;
+    color: white;
+}
+
+.status-badge.Cancelada {
+    background-color: #F44336; /* Red */
+}
+
+.status-badge.Activa {
+    background-color: #4CAF50; /* Green */
+}
+
+.status-badge.Terminada {
+    background-color: #FF9800; /* Orange */
+}
+
+.status-badge.Programada {
+    background-color: #2196F3; /* Blue */
+}
+
+/* Adjust table styles for better alignment */
+table td {
+    vertical-align: middle;
+}
+
+/* Center the status badge in its cell */
+td .status-badge {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 0 auto;
+}
+
 
 @media (max-width: 768px) {
     body {

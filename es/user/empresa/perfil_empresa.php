@@ -10,8 +10,8 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
 
 // Obtener información de la empresa y el usuario
 $query = "SELECT e.*, u.correo 
-          FROM Empresa e 
-          JOIN Usuario u ON e.usuario = u.numero 
+          FROM empresa e 
+          INNER JOIN usuario u ON e.usuario = u.numero 
           WHERE e.usuario = ?";
 $stmt = mysqli_prepare($conexion, $query);
 mysqli_stmt_bind_param($stmt, "i", $_SESSION['user_id']);
@@ -37,7 +37,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     $contrasenia = $_POST['contrasenia'] ? password_hash($_POST['contrasenia'], PASSWORD_DEFAULT) : $empresa['contrasenia'];
 
     // Actualizar la información de la empresa
-    $query_update_empresa = "UPDATE Empresa SET 
+    $query_update_empresa = "UPDATE empresa SET 
                              nombre = ?, ciudad = ?, calle = ?, numeroCalle = ?, 
                              colonia = ?, codigoPostal = ?, nombreCont = ?, 
                              primerApellidoCont = ?, segundoApellidoCont = ? 
@@ -49,7 +49,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                            $primerApellidoCont, $segundoApellidoCont, $_SESSION['user_id']);
     
     // Actualizar la información del usuario
-    $query_update_usuario = "UPDATE Usuario SET correo = ?, contrasenia = ? WHERE numero = ?";
+    $query_update_usuario = "UPDATE usuario SET correo = ?, contrasenia = ? WHERE numero = ?";
     $stmt_update_usuario = mysqli_prepare($conexion, $query_update_usuario);
     mysqli_stmt_bind_param($stmt_update_usuario, "ssi", $correo, $contrasenia, $_SESSION['user_id']);
 
@@ -88,7 +88,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             <section class="profile-section">
                 <div class="profile-header">
                     <div class="profile-avatar">
-                        <i class="fas fa-building"></i>
+                        <img src="img/company.jpeg" alt="" width="135px">
                     </div>
                     <h2><?php echo htmlspecialchars($empresa['nombre']); ?></h2>
                     <p><i class="fas fa-map-marker-alt"></i> <?php echo htmlspecialchars($empresa['ciudad']); ?></p>

@@ -64,7 +64,7 @@
             </div>
             <nav class="main-nav">
                 <a href="#inicio">Inicio</a>
-                <a href="#caracteristicas">Vacantes</a>
+                <a href="homevacantes.php">Vacantes</a>
                 <a href="#testimonios">Empresas</a>
                 <a href="/Outsourcing/en/index.php">English</a>
                 <a href="/Outsourcing/es/index.php">Español</a>
@@ -162,7 +162,7 @@
                     <div class="card-content">
                         <h2 class="card-title">Vacantes</h2>
                         <p>Busca vacantes en diversas áreas y niveles. Encuentra la oportunidad ideal para impulsar tu carrera.</p>
-                        <a href="#" class="card-link">Conoce más</a>
+                        <a href="homevacantes.php" class="card-link">Conoce más</a>
                     </div>
                 </div>
                 <div class="card">

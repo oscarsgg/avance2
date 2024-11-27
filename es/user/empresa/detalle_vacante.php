@@ -18,10 +18,10 @@ if ($vacante_id === 0) {
 
 // Obtener los detalles de la vacante
 $query_vacante = "SELECT v.*, tc.nombre AS tipo_contrato_nombre, tc.descripcion AS tipo_contrato_descripcion, 
-                         e.nombre AS nombre_empresa
-                  FROM Vacante v
-                  JOIN Tipo_Contrato tc ON v.tipo_contrato = tc.codigo
-                  JOIN Empresa e ON v.empresa = e.numero
+                         e.nombre AS nombre_empresa, v.cantPostulantes AS cantidad_postulantes
+                  FROM vacante AS v
+                  INNER JOIN tipo_contrato tc ON v.tipo_contrato = tc.codigo
+                  INNER JOIN empresa e ON v.empresa = e.numero
                   WHERE v.numero = ?";
 $stmt_vacante = mysqli_prepare($conexion, $query_vacante);
 mysqli_stmt_bind_param($stmt_vacante, "i", $vacante_id);
@@ -36,8 +36,8 @@ if (!$vacante) {
 
 // Obtener carreras solicitadas
 $query_carreras = "SELECT c.nombre
-                   FROM Carreras_solicitadas cs
-                   JOIN Carrera c ON cs.carrera = c.codigo
+                   FROM carreras_solicitadas cs
+                   INNER JOIN carrera c ON cs.carrera = c.codigo
                    WHERE cs.vacante = ?";
 $stmt_carreras = mysqli_prepare($conexion, $query_carreras);
 mysqli_stmt_bind_param($stmt_carreras, "i", $vacante_id);
@@ -47,7 +47,7 @@ $carreras = mysqli_fetch_all($resultado_carreras, MYSQLI_ASSOC);
 
 // Obtener requerimientos
 $query_requerimientos = "SELECT descripcion
-                         FROM Requerimiento
+                         FROM requerimiento
                          WHERE vacante = ?";
 $stmt_requerimientos = mysqli_prepare($conexion, $query_requerimientos);
 mysqli_stmt_bind_param($stmt_requerimientos, "i", $vacante_id);
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $estado = isset($_POST['estado']) ? 1 : 0;
     $tipo_contrato = mysqli_real_escape_string($conexion, $_POST['tipo_contrato']);
 
-    $query_update = "UPDATE Vacante SET 
+    $query_update = "UPDATE vacante SET 
                      titulo = ?, descripcion = ?, salario = ?, es_directo = ?, 
                      fechaInicio = ?, fechaCierre = ?, 
                      estado = ?, tipo_contrato = ?
@@ -141,8 +141,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="info-value"><?php echo htmlspecialchars($vacante['tipo_contrato_descripcion']); ?></div>
                     </div>
                     <div class="info-item">
-                        <div class="info-label">Empresa:</div>
-                        <div class="info-value"><?php echo htmlspecialchars($vacante['nombre_empresa']); ?></div>
+                        <div class="info-label">Cantidad de postulantes:</div>
+                        <div class="info-value"><?php echo htmlspecialchars($vacante['cantidad_postulantes']); ?></div>
                     </div>
                 </div>
 

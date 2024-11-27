@@ -1,6 +1,7 @@
 <?php
 session_start();
 include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+require_once 'check_membership.php';
 
 // Verificar si el usuario está logueado y es una empresa
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
@@ -9,7 +10,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
 }
 
 // Obtener el número de la empresa
-$query_empresa = "SELECT numero FROM Empresa WHERE usuario = ?";
+$query_empresa = "SELECT numero FROM empresa WHERE usuario = ?";
 $stmt_empresa = mysqli_prepare($conexion, $query_empresa);
 mysqli_stmt_bind_param($stmt_empresa, "i", $_SESSION['user_id']);
 mysqli_stmt_execute($stmt_empresa);
@@ -18,12 +19,12 @@ $empresa = mysqli_fetch_assoc($resultado_empresa);
 $numero_empresa = $empresa['numero'];
 
 // Obtener tipos de contrato
-$query_tipos_contrato = "SELECT codigo, nombre FROM Tipo_Contrato";
+$query_tipos_contrato = "SELECT codigo, nombre FROM tipo_contrato";
 $resultado_tipos_contrato = mysqli_query($conexion, $query_tipos_contrato);
 $tipos_contrato = mysqli_fetch_all($resultado_tipos_contrato, MYSQLI_ASSOC);
 
 // Obtener carreras
-$query_carreras = "SELECT codigo, nombre FROM Carrera";
+$query_carreras = "SELECT codigo, nombre FROM carrera";
 $resultado_carreras = mysqli_query($conexion, $query_carreras);
 $carreras = mysqli_fetch_all($resultado_carreras, MYSQLI_ASSOC);
 
@@ -60,7 +61,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
         try {
             // Insertar la vacante
-            $query_insertar = "INSERT INTO Vacante (titulo, descripcion, salario, es_directo, fechaInicio, fechaCierre, tipo_contrato, empresa) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+            $query_insertar = "INSERT INTO vacante (titulo, descripcion, salario, es_directo, fechaInicio, fechaCierre, tipo_contrato, empresa) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
             $stmt_insertar = mysqli_prepare($conexion, $query_insertar);
             mysqli_stmt_bind_param($stmt_insertar, "sssisssi", $titulo, $descripcion, $salario, $es_directo, $fechaInicio, $fechaCierre, $tipo_contrato, $numero_empresa);
             mysqli_stmt_execute($stmt_insertar);
@@ -69,7 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Insertar carreras solicitadas
             if (!empty($carreras_solicitadas)) {
-                $query_carrera = "INSERT INTO Carreras_solicitadas (vacante, carrera) VALUES (?, ?)";
+                $query_carrera = "INSERT INTO csarreras_solicitadas (vacante, carrera) VALUES (?, ?)";
                 $stmt_carrera = mysqli_prepare($conexion, $query_carrera);
                 foreach ($carreras_solicitadas as $carrera) {
                     mysqli_stmt_bind_param($stmt_carrera, "is", $vacante_id, $carrera);
@@ -79,7 +80,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Insertar requerimientos
             if (!empty($requerimientos)) {
-                $query_req = "INSERT INTO Requerimiento (descripcion, vacante) VALUES (?, ?)";
+                $query_req = "INSERT INTO requerimiento (descripcion, vacante) VALUES (?, ?)";
                 $stmt_req = mysqli_prepare($conexion, $query_req);
                 foreach ($requerimientos as $req) {
                     if (!empty($req)) {

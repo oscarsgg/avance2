@@ -66,14 +66,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if (empty($error)) {
                 // Insertar en la tabla Usuario
-                $stmt = $conexion->prepare("INSERT INTO Usuario (correo, contrasenia, rol) VALUES (?, SHA1(?), 'PRO')");
+                $stmt = $conexion->prepare("INSERT INTO usuario (correo, contrasenia, rol) VALUES (?, SHA1(?), 'PRO')");
                 $stmt->bind_param("ss", $correo, $contrasenia);
 
                 if ($stmt->execute()) {
                     $id_usuario = $stmt->insert_id;
 
                     // Insertar en la tabla Prospecto
-                    $stmt = $conexion->prepare("INSERT INTO Prospecto (nombre, primerApellido, segundoApellido, resumen, fechaNacimiento, numTel, usuario) VALUES (?, ?, ?, ?, ?, ?, ?)");
+                    $stmt = $conexion->prepare("INSERT INTO prospecto (nombre, primerApellido, segundoApellido, resumen, fechaNacimiento, numTel, usuario) VALUES (?, ?, ?, ?, ?, ?, ?)");
                     $stmt->bind_param("ssssssi", $nombre, $primerApellido, $segundoApellido, $resumen, $fechaNacimiento, $numTel, $id_usuario);
 
                     if ($stmt->execute()) {
@@ -113,14 +113,14 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             if (empty($error)) {
                 // Insertar en la tabla Usuario
-                $stmt = $conexion->prepare("INSERT INTO Usuario (correo, contrasenia, rol) VALUES (?, SHA1(?), 'EMP')");
+                $stmt = $conexion->prepare("INSERT INTO usuario (correo, contrasenia, rol) VALUES (?, SHA1(?), 'EMP')");
                 $stmt->bind_param("ss", $correo, $contrasenia);
 
                 if ($stmt->execute()) {
                     $id_usuario = $stmt->insert_id;
 
                     // Insertar en la tabla Empresa
-                    $stmt = $conexion->prepare("INSERT INTO Empresa (nombre, ciudad, calle, numeroCalle, colonia, codigoPostal, nombreCont, primerApellidoCont, segundoApellidoCont, numTel, usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
+                    $stmt = $conexion->prepare("INSERT INTO empresa (nombre, ciudad, calle, numeroCalle, colonia, codigoPostal, nombreCont, primerApellidoCont, segundoApellidoCont, numTel, usuario) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)");
                     $stmt->bind_param("sssissssssi", $nombre, $ciudad, $calle, $numeroCalle, $colonia, $codigoPostal, $nombreCont, $primerApellidoCont, $segundoApellidoCont, $numTel, $id_usuario);
 
                     if ($stmt->execute()) {

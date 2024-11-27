@@ -27,7 +27,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $tipo_contrato = $_POST['tipo_contrato'];
 
     // Obtener el ID de la empresa asociada a la vacante
-    $sql_empresa = "SELECT empresa FROM Vacante WHERE numero = ?";
+    $sql_empresa = "SELECT empresa FROM vacante WHERE numero = ?";
     $stmt_empresa = $conexion->prepare($sql_empresa);
     $stmt_empresa->bind_param("i", $vacante);
     $stmt_empresa->execute();
@@ -41,7 +41,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $stmt_empresa->close();
 
     // Verificar si el tipo de contrato existe
-    $stmt_check = $conexion->prepare("SELECT codigo FROM Tipo_Contrato WHERE codigo = ?");
+    $stmt_check = $conexion->prepare("SELECT codigo FROM tipo_contrato WHERE codigo = ?");
     $stmt_check->bind_param("s", $tipo_contrato);
     $stmt_check->execute();
     $result = $stmt_check->get_result();
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         returnError('Error al subir la firma');
     }
 
-    $sql = "INSERT INTO Contrato (fechaInicio, fechaCierre, salario, horasDiarias, horario, prospecto, vacante, tipo_contrato, firma_empresa, empresa) 
+    $sql = "INSERT INTO contrato (fechaInicio, fechaCierre, salario, horasDiarias, horario, prospecto, vacante, tipo_contrato, firma_empresa, empresa) 
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
     
     $stmt = $conexion->prepare($sql);
@@ -79,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     if ($stmt->execute()) {
         // Actualizar el estatus de la solicitud a 'CONT' (Contratado)
-        $sql_update = "UPDATE Solicitud SET estatus = 'PFRM' WHERE prospecto = ? AND vacante = ?";
+        $sql_update = "UPDATE solicitud SET estatus = 'PFRM' WHERE prospecto = ? AND vacante = ?";
         $stmt_update = $conexion->prepare($sql_update);
         $stmt_update->bind_param("ii", $prospecto, $vacante);
         $stmt_update->execute();

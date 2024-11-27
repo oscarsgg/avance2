@@ -28,32 +28,36 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Encriptar la contraseña ingresada por el usuario
     $contrasenia_encriptada = sha1($contrasenia);
 
-    $query = "SELECT numero, rol FROM Usuario WHERE correo = ? AND contrasenia = ?";
+    $query = "SELECT numero, rol, estado FROM Usuario WHERE correo = ? AND contrasenia = ?";
     $stmt = mysqli_prepare($conexion, $query);
     mysqli_stmt_bind_param($stmt, "ss", $correo, $contrasenia_encriptada);
     mysqli_stmt_execute($stmt);
     $resultado = mysqli_stmt_get_result($stmt);
 
     if ($usuario = mysqli_fetch_assoc($resultado)) {
-        $_SESSION['user_id'] = $usuario['numero'];
-        $_SESSION['user_role'] = $usuario['rol'];
+        if ($usuario['estado'] == 0) {
+            $error = "La cuenta ha sido deshabilitada. Contactar al soporte del sistema.";
+        } else {
+            $_SESSION['user_id'] = $usuario['numero'];
+            $_SESSION['user_role'] = $usuario['rol'];
 
-        // Establecer una cookie de sesión con tiempo de vida limitado (por ejemplo, 30 minutos)
+            // Establecer una cookie de sesión con tiempo de vida limitado (por ejemplo, 30 minutos)
             session_set_cookie_params(1800); // 30 minutos en segundos
-        session_regenerate_id(true); // Regenerar el ID de sesión por seguridad
+            session_regenerate_id(true); // Regenerar el ID de sesión por seguridad
 
-        switch ($usuario['rol']) {
-            case 'PRO':
-                header("Location: user/prospecto/");
-                break;
-            case 'EMP':
-                header("Location: user/empresa/");
-                break;
-            case 'ADM':
-                header("Location: user/admin/");
-                break;
+            switch ($usuario['rol']) {
+                case 'PRO':
+                    header("Location: user/prospecto/");
+                    break;
+                case 'EMP':
+                    header("Location: user/empresa/");
+                    break;
+                case 'ADM':
+                    header("Location: user/admin/");
+                    break;
+            }
+            exit();
         }
-        exit();
     } else {
         $error = "Correo o contraseña incorrectos";
     }

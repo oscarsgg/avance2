@@ -19,9 +19,9 @@ if ($vacante_id === 0) {
 // Obtener los detalles de la vacante
 $query_vacante = "SELECT v.*, tc.nombre AS tipo_contrato_nombre, tc.descripcion AS tipo_contrato_descripcion, 
                          e.nombre AS nombre_empresa
-                  FROM Vacante v
-                  JOIN Tipo_Contrato tc ON v.tipo_contrato = tc.codigo
-                  JOIN Empresa e ON v.empresa = e.numero
+                  FROM vacante as v
+                  INNER JOIN tipo_contrato as tc ON v.tipo_contrato = tc.codigo
+                  INNER JOIN empresa as e ON v.empresa = e.numero
                   WHERE v.numero = ?";
 $stmt_vacante = mysqli_prepare($conexion, $query_vacante);
 mysqli_stmt_bind_param($stmt_vacante, "i", $vacante_id);
@@ -36,8 +36,8 @@ if (!$vacante) {
 
 // Obtener carreras solicitadas
 $query_carreras = "SELECT c.nombre
-                   FROM Carreras_solicitadas cs
-                   JOIN Carrera c ON cs.carrera = c.codigo
+                   FROM carreras_solicitadas as cs
+                   INNER JOIN carrera as c ON cs.carrera = c.codigo
                    WHERE cs.vacante = ?";
 $stmt_carreras = mysqli_prepare($conexion, $query_carreras);
 mysqli_stmt_bind_param($stmt_carreras, "i", $vacante_id);
@@ -66,7 +66,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $estado = isset($_POST['estado']) ? 1 : 0;
     $tipo_contrato = mysqli_real_escape_string($conexion, $_POST['tipo_contrato']);
 
-    $query_update = "UPDATE Vacante SET 
+    $query_update = "UPDATE vacante SET 
                      titulo = ?, descripcion = ?, salario = ?, es_directo = ?, 
                      fechaInicio = ?, fechaCierre = ?, 
                      estado = ?, tipo_contrato = ?

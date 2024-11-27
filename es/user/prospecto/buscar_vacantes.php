@@ -15,12 +15,12 @@ $search_keyword = isset($_GET['search_keyword']) ? mysqli_real_escape_string($co
 $search_city = isset($_GET['search_city']) ? mysqli_real_escape_string($conexion, $_GET['search_city']) : '';
 
 $query_vacantes = "
-    SELECT v.numero, v.titulo, v.descripcion, v.salario, v.fechaInicio, v.fechaCierre,
+    SELECT v.numero, v.estado, v.titulo, v.descripcion, v.salario, v.fechaInicio, v.fechaCierre,
            e.nombre AS empresa_nombre, e.ciudad, e.colonia, tc.nombre AS tipo_contrato
-    FROM Vacante v
-    JOIN Empresa e ON v.empresa = e.numero
-    JOIN Tipo_Contrato tc ON v.tipo_contrato = tc.codigo
-    WHERE v.fechaCierre >= CURDATE() AND v.fechaInicio <= CURDATE()
+    FROM vacante as v
+    INNER JOIN empresa as e ON v.empresa = e.numero
+    INNER JOIN tipo_contrato as tc ON v.tipo_contrato = tc.codigo
+    WHERE v.fechaCierre >= CURDATE() AND v.fechaInicio <= CURDATE() AND v.estado = true
 ";
 
 if (!empty($search_keyword)) {

@@ -33,7 +33,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['firma_prospecto']) &&
 
     // Actualizar la base de datos con la ruta de la firma
     $firma_ruta_db = '/Outsourcing/firmas/' . $firma_nombre;
-    $query = "UPDATE Contrato SET firma_prospecto = ? WHERE numero = ?";
+    $query = "UPDATE contrato SET firma_prospecto = ? WHERE numero = ?";
     $stmt = $conexion->prepare($query);
     $stmt->bind_param("si", $firma_ruta_db, $contrato_id);
 

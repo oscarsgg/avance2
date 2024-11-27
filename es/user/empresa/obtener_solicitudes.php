@@ -8,23 +8,41 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
     exit();
 }
 
+$user_id = $_SESSION['user_id'];
+
 $vacante_id = isset($_GET['vacante_id']) ? $_GET['vacante_id'] : null;
 $estatus = isset($_GET['estatus']) ? $_GET['estatus'] : null;
 
+
+// Obtener el número de la empresa asociada al usuario
+$query_empresa = "SELECT numero FROM Empresa WHERE usuario = $user_id";
+$result_empresa = mysqli_query($conexion, $query_empresa);
+
+if (mysqli_num_rows($result_empresa) == 0) {
+    die("Error: No se encontró una empresa asociada a este usuario.");
+}
+
+$empresa = mysqli_fetch_assoc($result_empresa);
+$empresa_id = $empresa['numero'];
+
+
 // Consulta inicial
-$sql = "SELECT s.*, p.nombre, p.primerApellido, p.segundoApellido, p.numTel, e.nombre as nombre_estatus
+$sql = "SELECT s.*, p.nombre, p.primerApellido, p.segundoApellido, p.numTel, v.titulo as titulovacante, 
+        e.nombre as nombre_estatus, s.fechaSolicitud as fecha_solicitud
         FROM solicitud s
-        INNER JOIN prospecto p ON s.prospecto = p.numero
-        INNER JOIN estatus_Solicitud e ON s.estatus = e.codigo";
+        INNER JOIN prospecto AS p ON s.prospecto = p.numero
+        INNER JOIN vacante AS v on s.vacante = v.numero
+        INNER JOIN estatus_Solicitud AS e ON s.estatus = e.codigo
+        WHERE v.empresa = $empresa_id AND s.es_cancelada = false";
 
 // Filtrar por vacante si se especifica
 if ($vacante_id) {
-    $sql .= " WHERE s.vacante = $vacante_id";
+    $sql .= " AND s.vacante = $vacante_id";
 }
 
 // Filtrar por estatus si se especifica
 if ($estatus) {
-    $sql .= $vacante_id ? " AND" : " WHERE";
+    $sql .= " AND";
     $sql .= " s.estatus = '$estatus'";
 }
 
@@ -39,6 +57,8 @@ if ($result->num_rows > 0) {
     while ($row = $result->fetch_assoc()) {
         echo "<div class='solicitud'>";
         echo "<h3>" . $row['nombre'] . " " . $row['primerApellido'] . " " . $row['segundoApellido'] . "</h3>";
+        echo "<p>Vacante: " . $row['titulovacante'] . "</p>";
+        echo "<p>Fecha de solicitud: " . $row['fecha_solicitud'] . "</p>";
         echo "<p>Teléfono: " . $row['numTel'] . "</p>";
         echo "<p>Estatus: " . $row['nombre_estatus'] . "</p>";
         echo "<button class='btn ver-perfil' data-prospecto='" . $row['prospecto'] . "'>Ver Perfil</button>";

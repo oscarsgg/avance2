@@ -331,7 +331,24 @@ $firma_prospecto = isset($firmas['firma_prospecto']) ? $firmas['firma_prospecto'
 </head>
 
 <body>
+    <h1>
+        Detalles del Contrato
+    </h1>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-12">
+                <h2>Contrato de <?php echo $contrato['vacante_titulo']; ?></h2>
+                <p>Prospecto: <?php echo $contrato['prospecto_nombre'] . " " . $contrato['prospecto_primerApellido'] . " " . $contrato['prospecto_segundoApellido']; ?>
+                <p>Fecha de inicio: <?php echo $contrato['fechaInicio']; ?>
+                <p>Fecha de fin: <?php echo $contrato['fechaCierre']; ?>
+                <p>Tipo de contrato: <?php echo $contrato['tipo_contrato_nombre']; ?>
+                <p>Salario: <?php echo $contrato['salario']; ?></p>
+            </div>
+        </div>
+    </div>
     <?php include 'incluides/sidebar.php'; ?>
+
+    <hr style="border: 1px solid #000; margin: 20px;">
 
     <div id="contenidoContrato">
         <?php echo $contenido_contrato; ?>
@@ -382,9 +399,10 @@ $firma_prospecto = isset($firmas['firma_prospecto']) ? $firmas['firma_prospecto'
                 <input type="hidden" name="firma_prospecto" id="firma_prospecto">
             </form>
         <?php endif; ?>
-        <hr style="border: 1px solid #000; margin-top: 20px;">
     </div>
 
+    <hr style="border: 1px solid #000; margin-top: 20px;">
+    
     <div class="download-div">
         <button onclick="descargarPDF()" class="download-button">
             <div class="docs">

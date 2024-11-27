@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Obtener el número de la empresa asociada al usuario
-$query_empresa = "SELECT numero FROM Empresa WHERE usuario = $user_id";
+$query_empresa = "SELECT numero FROM empresa WHERE usuario = $user_id";
 $result_empresa = mysqli_query($conexion, $query_empresa);
 
 if (mysqli_num_rows($result_empresa) == 0) {
@@ -28,7 +28,7 @@ $empresa_id = $empresa['numero'];
 $search = isset($_GET['search']) ? mysqli_real_escape_string($conexion, $_GET['search']) : '';
 
 // Consulta para obtener las vacantes de la empresa
-$query = "SELECT numero, titulo, fechaCierre FROM Vacante WHERE empresa = $empresa_id";
+$query = "SELECT numero, titulo, fechaCierre FROM vacante WHERE empresa = $empresa_id";
 if (!empty($search)) {
     $query .= " AND titulo LIKE '%$search%'";
 }

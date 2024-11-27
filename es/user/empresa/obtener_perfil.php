@@ -44,8 +44,8 @@ $result = $conexion->query($sql);
         <!-- Carreras Estudiadas -->
         <?php
         $sql_carreras = "SELECT c.nombre as nombre_carrera, ce.anioConcluido 
-                         FROM Carreras_estudiadas ce
-                         JOIN Carrera c ON ce.carrera = c.codigo
+                         FROM carreras_estudiadas ce
+                         INNER JOIN carrera c ON ce.carrera = c.codigo
                          WHERE ce.prospecto = $prospecto_id";
         $result_carreras = $conexion->query($sql_carreras);
         ?>

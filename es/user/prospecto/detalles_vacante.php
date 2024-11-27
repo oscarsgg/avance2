@@ -41,9 +41,9 @@ if ($vacante_id === 0) {
 // Obtener los detalles de la vacante
 $query_vacante = "SELECT v.*, tc.nombre AS tipo_contrato_nombre, tc.descripcion AS tipo_contrato_descripcion, 
                          e.nombre AS nombre_empresa, e.ciudad, e.colonia
-                  FROM Vacante v
-                  JOIN Tipo_Contrato tc ON v.tipo_contrato = tc.codigo
-                  JOIN Empresa e ON v.empresa = e.numero
+                  FROM vacante AS v
+                  INNER JOIN tipo_contrato AS tc ON v.tipo_contrato = tc.codigo
+                  INNER JOIN empresa AS e ON v.empresa = e.numero
                   WHERE v.numero = ?";
 $stmt_vacante = mysqli_prepare($conexion, $query_vacante);
 mysqli_stmt_bind_param($stmt_vacante, "i", $vacante_id);
@@ -67,8 +67,8 @@ $diasRest = $result->fetch_assoc()['diasRestantes'];
 
 // Obtener carreras solicitadas
 $query_carreras = "SELECT c.nombre
-                   FROM Carreras_solicitadas cs
-                   JOIN Carrera c ON cs.carrera = c.codigo
+                   FROM carreras_solicitadas AS cs
+                   INNER JOIN carrera as c ON cs.carrera = c.codigo
                    WHERE cs.vacante = ?";
 $stmt_carreras = mysqli_prepare($conexion, $query_carreras);
 mysqli_stmt_bind_param($stmt_carreras, "i", $vacante_id);
@@ -78,7 +78,7 @@ $carreras = mysqli_fetch_all($resultado_carreras, MYSQLI_ASSOC);
 
 // Obtener requerimientos
 $query_requerimientos = "SELECT descripcion
-                         FROM Requerimiento
+                         FROM requerimiento
                          WHERE vacante = ?";
 $stmt_requerimientos = mysqli_prepare($conexion, $query_requerimientos);
 mysqli_stmt_bind_param($stmt_requerimientos, "i", $vacante_id);

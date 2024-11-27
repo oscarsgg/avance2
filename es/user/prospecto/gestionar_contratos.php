@@ -34,11 +34,11 @@ $status_filter = isset($_GET['status']) ? $_GET['status'] : '';
 $query = "SELECT c.numero, c.fechaInicio, c.fechaCierre, tc.nombre AS nombre_contrato, 
                  v.titulo AS vacante_titulo, e.nombre AS nombre_empresa,
                  p.nombre AS prospecto_nombre, p.primerApellido, p.segundoApellido
-          FROM Contrato c
-          INNER JOIN Vacante v ON c.vacante = v.numero
-          INNER JOIN Prospecto p ON c.prospecto = p.numero
-          INNER JOIN Tipo_contrato tc ON c.tipo_contrato = tc.codigo
-          INNER JOIN empresa as e on e.numero = c.empresa
+          FROM contrato AS c
+          INNER JOIN vacante AS v ON c.vacante = v.numero
+          INNER JOIN prospecto AS p ON c.prospecto = p.numero
+          INNER JOIN tipo_contrato AS tc ON c.tipo_contrato = tc.codigo
+          INNER JOIN empresa AS e on e.numero = c.empresa
           WHERE c.prospecto = ?";
 
 $params = array($prospecto_id);

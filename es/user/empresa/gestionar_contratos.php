@@ -14,7 +14,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Obtener el número de la empresa asociada al usuario
-$query_empresa = "SELECT numero FROM Empresa WHERE usuario = ?";
+$query_empresa = "SELECT numero FROM empresa WHERE usuario = ?";
 $stmt_empresa = mysqli_prepare($conexion, $query_empresa);
 mysqli_stmt_bind_param($stmt_empresa, "i", $user_id);
 mysqli_stmt_execute($stmt_empresa);
@@ -35,10 +35,10 @@ $status_filter = isset($_GET['status']) ? $_GET['status'] : '';
 $query = "SELECT c.numero, c.fechaInicio, c.fechaCierre, tc.nombre AS nombre_contrato, 
                  v.titulo AS vacante_titulo, 
                  p.nombre AS prospecto_nombre, p.primerApellido, p.segundoApellido
-          FROM Contrato c
-          JOIN Vacante v ON c.vacante = v.numero
-          JOIN Prospecto p ON c.prospecto = p.numero
-          INNER JOIN Tipo_contrato tc ON c.tipo_contrato = tc.codigo
+          FROM contrato AS c
+          INNER JOIN vacante AS v ON c.vacante = v.numero
+          INNER JOIN prospecto AS p ON c.prospecto = p.numero
+          INNER JOIN tipo_contrato AS tc ON c.tipo_contrato = tc.codigo
           WHERE c.empresa = ?";
 
 $params = array($empresa_id);

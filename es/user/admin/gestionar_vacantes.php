@@ -10,15 +10,27 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'ADM') {
 
 // Función para obtener todas las vacantes del sistema
 function getVacantes($conexion) {
-    $query = "SELECT v.numero, v.titulo, v.estado, e.nombre as nombre_empresa
-              FROM Vacante v
-              INNER JOIN Empresa e ON v.empresa = e.numero
+    $query = "SELECT v.numero, v.titulo, v.estado, v.fechaInicio, v.fechaCierre, e.nombre as nombre_empresa
+              FROM vacante as v
+              INNER JOIN empresa as e ON v.empresa = e.numero
               ORDER BY v.fechaInicio DESC";
     
     $result = $conexion->query($query);
     
     $vacantes = [];
+    $currentDate = date('Y-m-d');
     while ($row = $result->fetch_assoc()) {
+        if ($row['estado'] == 1) {
+            if ($currentDate >= $row['fechaInicio'] && $currentDate <= $row['fechaCierre']) {
+                $row['estado_texto'] = 'Activa';
+            } else if ($currentDate > $row['fechaCierre']) {
+                $row['estado_texto'] = 'Terminada';
+            } else {
+                $row['estado_texto'] = 'Programada';
+            }
+        } else {
+            $row['estado_texto'] = 'Cancelada';
+        }
         $vacantes[] = $row;
     }
     
@@ -35,10 +47,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             case 'agregar':
                 $titulo = $_POST['titulo'];
                 $estado = $_POST['estado'];
-                $empresa = $_POST['empresa']; // Asumiendo que se proporciona el ID de la empresa
+                $empresa = $_POST['empresa'];
+                $fechaInicio = $_POST['fechaInicio'];
+                $fechaCierre = $_POST['fechaCierre'];
                 
-                $stmt = $conexion->prepare("INSERT INTO Vacante (titulo, estado, empresa) VALUES (?, ?, ?)");
-                $stmt->bind_param("ssi", $titulo, $estado, $empresa);
+                $stmt = $conexion->prepare("INSERT INTO Vacante (titulo, estado, empresa, fechaInicio, fechaCierre) VALUES (?, ?, ?, ?, ?)");
+                $stmt->bind_param("siiss", $titulo, $estado, $empresa, $fechaInicio, $fechaCierre);
                 $stmt->execute();
                 break;
             
@@ -46,9 +60,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $id = $_POST['id'];
                 $titulo = $_POST['titulo'];
                 $estado = $_POST['estado'];
+                $fechaInicio = $_POST['fechaInicio'];
+                $fechaCierre = $_POST['fechaCierre'];
                 
-                $stmt = $conexion->prepare("UPDATE Vacante SET titulo = ?, estado = ? WHERE numero = ?");
-                $stmt->bind_param("ssi", $titulo, $estado, $id);
+                $stmt = $conexion->prepare("UPDATE Vacante SET titulo = ?, estado = ?, fechaInicio = ?, fechaCierre = ? WHERE numero = ?");
+                $stmt->bind_param("sissi", $titulo, $estado, $fechaInicio, $fechaCierre, $id);
                 $stmt->execute();
                 break;
             
@@ -98,8 +114,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div class="form-group">
                         <label for="vacancyStatus">Estado:</label>
                         <select id="vacancyStatus" name="estado" class="input-form">
-                            <option value="Abierta">Abierta</option>
-                            <option value="Cerrada">Cerrada</option>
+                            <option value="1">Activa</option>
+                            <option value="0">Cancelada</option>
                         </select>
                     </div>
                     <div class="form-group">
@@ -112,6 +128,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             }
                             ?>
                         </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="vacancyStartDate">Fecha de Inicio:</label>
+                        <input type="date" id="vacancyStartDate" name="fechaInicio" class="input-form" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="vacancyEndDate">Fecha de Cierre:</label>
+                        <input type="date" id="vacancyEndDate" name="fechaCierre" class="input-form" required>
                     </div>
                     <button type="submit" class="btn-add" id="saveButton">Guardar Vacante</button>
                 </form>
@@ -126,15 +150,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <th>ACCIONES</th>
                 </tr>
             </thead>
+            
             <tbody id="vacantesTableBody">
                 <?php foreach ($vacantes as $vacante): ?>
                     <tr>
                         <td><?php echo htmlspecialchars($vacante['titulo']); ?></td>
                         <td><?php echo htmlspecialchars($vacante['nombre_empresa']); ?></td>
-                        <td><span><?php echo htmlspecialchars($vacante['estado']); ?></span></td>
+                        <td>
+                            <span class="status-badge <?php echo $vacante['estado_texto']; ?>">
+                                <?php echo ucfirst(htmlspecialchars($vacante['estado_texto'])); ?>
+                            </span>
+                        </td>
                         <td>
                             <div class="actions">
-                                <button onclick="abrirModalEditar(<?php echo $vacante['numero']; ?>, '<?php echo addslashes($vacante['titulo']); ?>', '<?php echo $vacante['estado']; ?>')">
+                                <button onclick="abrirModalEditar(<?php echo $vacante['numero']; ?>, '<?php echo addslashes($vacante['titulo']); ?>', '<?php echo $vacante['estado']; ?>', '<?php echo $vacante['fechaInicio']; ?>', '<?php echo $vacante['fechaCierre']; ?>')">
                                     <img src="https://img.icons8.com/ios/452/edit--v1.png" alt="Edit">
                                 </button>
                                 <button onclick="confirmarEliminar(<?php echo $vacante['numero']; ?>)">
@@ -192,11 +221,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             actualizarPaginacion();
         });
 
-        function abrirModalEditar(id, titulo, estado) {
+        function abrirModalEditar(id, titulo, estado, fechaInicio, fechaCierre) {
             isEditing = true;
             document.getElementById("vacancyId").value = id;
             document.getElementById("vacancyTitle").value = titulo;
             document.getElementById("vacancyStatus").value = estado;
+            document.getElementById("vacancyStartDate").value = fechaInicio;
+            document.getElementById("vacancyEndDate").value = fechaCierre;
             document.getElementById("modalTitle").innerText = "Editar Vacante";
             document.getElementById("saveButton").innerText = "Actualizar Vacante";
             document.getElementById("formAction").value = "editar";

@@ -8,16 +8,29 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
     exit();
 }
 
+$user_id = $_SESSION['user_id'];
+
+// Obtener el número de la empresa asociada al usuario
+$query_empresa = "SELECT numero FROM Empresa WHERE usuario = $user_id";
+$result_empresa = mysqli_query($conexion, $query_empresa);
+
+if (mysqli_num_rows($result_empresa) == 0) {
+    die("Error: No se encontró una empresa asociada a este usuario.");
+}
+
+$empresa = mysqli_fetch_assoc($result_empresa);
+$empresa_id = $empresa['numero'];
+
+
 // Obtener las vacantes de la empresa
-$empresa_id = 1; // Asume que tienes el ID de la empresa actual
-$sql_vacantes = "SELECT numero, titulo FROM Vacante WHERE empresa = $empresa_id";
+$sql_vacantes = "SELECT numero, titulo FROM vacante WHERE empresa = $empresa_id";
 $result_vacantes = $conexion->query($sql_vacantes);
 
 // Función para obtener el nombre del estatus
 function obtener_nombre_estatus($codigo)
 {
     global $conexion;
-    $sql = "SELECT nombre FROM Estatus_Solicitud WHERE codigo = '$codigo'";
+    $sql = "SELECT nombre FROM estatus_solicitud WHERE codigo = '$codigo'";
     $result = $conexion->query($sql);
     if ($result->num_rows > 0) {
         return $result->fetch_assoc()['nombre'];

@@ -26,8 +26,8 @@ $empresa_id = $empresa['numero'];
 
 // Obtener información de la membresía actual
 $query = "SELECT m.*, ps.duracion, ps.precio, ps.precioMensual 
-          FROM Membresia m 
-          JOIN Plan_suscripcion ps ON m.plan_suscripcion = ps.codigo
+          FROM membresia as m 
+          INNER JOIN plan_suscripcion as ps ON m.plan_suscripcion = ps.codigo
           WHERE m.empresa = ? 
           ORDER BY m.fechaVencimiento DESC 
           LIMIT 1";
@@ -61,7 +61,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numero_tarjeta'])) {
         $error = "El CVV debe tener 3 dígitos.";
     } else {
         // Obtener la duración del plan seleccionado
-        $query_plan = "SELECT duracion FROM Plan_suscripcion WHERE codigo = ?";
+        $query_plan = "SELECT duracion, nombrePlan FROM Plan_suscripcion WHERE codigo = ?";
         $stmt = $conexion->prepare($query_plan);
         $stmt->bind_param("s", $plan_seleccionado);
         $stmt->execute();
@@ -144,7 +144,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numero_tarjeta'])) {
         <div class="plan-container">
             <?php foreach ($planes as $plan): ?>
                 <div class="cards__card card">
-                    <p class="card__heading"><?php echo htmlspecialchars($plan['codigo']); ?></p>
+                    <p class="card__heading"><?php echo htmlspecialchars($plan['nombrePlan']); ?></p>
                     <p class="card__price">$<?php echo number_format($plan['precioMensual'], 2); ?>/mes</p>
                     <ul class="card_bullets flow" role="list">
                         <li>Duración: <?php echo $plan['duracion']; ?> meses</li>

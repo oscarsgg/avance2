@@ -112,7 +112,6 @@ document.addEventListener('DOMContentLoaded', function() {
             case 'admin':
                 createEditableField('correo', 'Correo', 'email', true);
                 createEditableField('estado', 'Estado', 'select', true, ['activo', 'inactivo']);
-                createEditableField('rol', 'Rol', 'text', true);
                 break;
         }
 
