@@ -20,24 +20,30 @@
             }
             .containerslide {
                 padding: 10px;
+                padding-top: 25rem;
             }
             .card-container-slide {
                 flex-direction: column;
             }
             .cardslide {
                 margin-bottom: 20px;
+                overflow: hidden;
             }
             .textbody {
                 margin-left: 1rem;
                 margin-right: 1rem;
             }
             .image-container {
-                width: 100%;
+                width: 96%;
+                height: 20%;
                 margin-left: 0;
-                margin-right: 0;
+                padding-left: 10px;
+
             }
+            
             .overlay-container {
                 width: 90%;
+                
             }
             .card-container {
                 flex-direction: column;
@@ -75,8 +81,8 @@
         <section>
             <div class="hero-section slider-box">
                 <ul>
-                    <li><img src="img/slider1.png" alt="No image" class="hero-image"></li>
-                    <li><img src="img/body1.png" alt="No image" class="hero-image"></li>
+                    <li><img src="img/slider5.jpeg" alt="No image" class="hero-image"></li>
+                    <li><img src="img/slider6.jpeg" alt="No image" class="hero-image"></li>
                     <li><img src="img/slider2.png" alt="No image" class="hero-image"></li>
                     <li><img src="img/slider3.png" alt="No image" class="hero-image"></li>
                 </ul>
@@ -154,39 +160,6 @@
         </section>
 
         <!-- SERVICIOS QUE OFRECEMOS -->
-        <div class="containerservices">
-            <h1>Echa un vistazo</h1>
-            <div class="card-container">
-                <div class="card">
-                    <img src="img/servicio1.png" alt="Foto de vacante x" class="card-image">
-                    <div class="card-content">
-                        <h2 class="card-title">Vacantes</h2>
-                        <p>Busca vacantes en diversas áreas y niveles. Encuentra la oportunidad ideal para impulsar tu carrera.</p>
-                        <a href="homevacantes.php" class="card-link">Conoce más</a>
-                    </div>
-                </div>
-                <div class="card">
-                    <img src="img/servicio2.png" alt="Foto de certificacion x" class="card-image">
-                    <div class="card-content">
-                        <h2 class="card-title">Certificaciones</h2>
-                        <p>Ofrecemos certificaciones actualizadas en habilidades técnicas y de gestión, 
-                        diseñadas para mejorar tu perfil profesional y destacar en el mercado laboral.</p>
-                        <a href="#" class="card-link">Conoce más</a>
-                    </div>
-                </div>
-                <div class="card">
-                    <img src="img/body1.png" alt="Reseña o cosa x" class="card-image">
-                    <div class="card-content">
-                        <h2 class="card-title">Reseñas</h2>
-                        <p>
-                        Las reseñas de nuestros clientes y colaboradores destacan nuestro compromiso con la calidad,
-                        la rapidez en los procesos y el éxito en conectar talento con oportunidades clave.
-                        </p>
-                        <a href="#" class="card-link">Conoce más</a>
-                    </div>
-                </div>
-            </div>
-        </div>
     </main>
 
     <footer class="footer-down">

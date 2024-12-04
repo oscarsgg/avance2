@@ -349,7 +349,8 @@ body {
 
 .modal-content {
     background-color: #fefefe;
-    margin: 15% auto;
+    margin-left: 35rem;
+    margin-top: 10rem;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
@@ -425,7 +426,6 @@ body {
     transform: translateY(-2px);
 }
 
-/* Add these styles to your existing CSS */
 .experience-item, .education-item, .aboutme-item {
     background-color: #f9f9f9;
     border: 1px solid #e0e0e0;
@@ -789,5 +789,9 @@ textarea.aboutme-item{
 
     .profile-details {
         padding: 15px;
+    }
+
+    .tab{
+        width: 120px;
     }
 }

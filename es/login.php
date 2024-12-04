@@ -105,8 +105,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         <div class="features-section">
             <div class="feature active">
                 <h3>Conecta con el Talento</h3>
-                <p>Encuentra los mejores profesionales para tu empresa con nuestra plataforma de reclutamiento avanzada.
-                </p>
+                <p>Encuentra los mejores profesionales para tu empresa con nuestra plataforma de reclutamiento avanzada.</p>
             </div>
             <div class="feature">
                 <h3>Gestión de Vacantes</h3>
@@ -118,8 +117,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             </div>
             <div class="feature">
                 <h3>Análisis y Reportes</h3>
-                <p>Obtén insights valiosos sobre tus procesos de reclutamiento con nuestras herramientas de análisis.
-                </p>
+                <p>Obtén insights valiosos sobre tus procesos de reclutamiento con nuestras herramientas de análisis.</p>
             </div>
             <div class="dots">
                 <span class="dot active"></span>
