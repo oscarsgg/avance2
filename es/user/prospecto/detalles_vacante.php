@@ -1,6 +1,7 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
+
 
 // Verificar si el usuario está logueado y es un prospecto
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'PRO') {
@@ -12,7 +13,7 @@ $user_id = $_SESSION['user_id'];
 
 // Obtener el prospecto_id si no está en la sesión
 if (!isset($_SESSION['prospecto_id'])) {
-    $query_prospecto = "SELECT numero FROM Prospecto WHERE usuario = ?";
+    $query_prospecto = "SELECT numero FROM prospecto WHERE usuario = ?";
     $stmt_prospecto = mysqli_prepare($conexion, $query_prospecto);
     mysqli_stmt_bind_param($stmt_prospecto, "i", $user_id);
     mysqli_stmt_execute($stmt_prospecto);
@@ -87,7 +88,7 @@ $resultado_requerimientos = mysqli_stmt_get_result($stmt_requerimientos);
 $requerimientos = mysqli_fetch_all($resultado_requerimientos, MYSQLI_ASSOC);
 
 // Verificar si ya existe una solicitud para esta vacante
-$query_solicitud_existente = "SELECT * FROM Solicitud WHERE prospecto = ? AND vacante = ?";
+$query_solicitud_existente = "SELECT * FROM solicitud WHERE prospecto = ? AND vacante = ?";
 $stmt_solicitud_existente = mysqli_prepare($conexion, $query_solicitud_existente);
 mysqli_stmt_bind_param($stmt_solicitud_existente, "ii", $prospecto_id, $vacante_id);
 mysqli_stmt_execute($stmt_solicitud_existente);
@@ -103,7 +104,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['enviar_solicitud'])) 
     } elseif ($fecha_actual < $vacante['fechaInicio'] || $fecha_actual > $vacante['fechaCierre']) {
         $mensaje = "No se puede enviar una solicitud porque la vacante no está activa en este momento.";
     } else {
-        $query_insert_solicitud = "INSERT INTO Solicitud (prospecto, vacante, estatus, es_cancelada) VALUES (?, ?, 'PEND', 0)";
+        $query_insert_solicitud = "INSERT INTO solicitud (prospecto, vacante, estatus, es_cancelada) VALUES (?, ?, 'PEND', 0)";
         $stmt_insert_solicitud = mysqli_prepare($conexion, $query_insert_solicitud);
         mysqli_stmt_bind_param($stmt_insert_solicitud, "ii", $prospecto_id, $vacante_id);
         

@@ -1,5 +1,5 @@
 <?php
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../Outsourcing/config.php');
 
 $error = '';
 $success = '';
@@ -13,7 +13,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         $error = "El correo electrónico no es válido.";
     } else {
         // Verificar si el correo ya existe
-        $stmt = $conexion->prepare("SELECT COUNT(*) FROM Usuario WHERE correo = ?");
+        $stmt = $conexion->prepare("SELECT COUNT(*) FROM usuario WHERE correo = ?");
         $stmt->bind_param("s", $correo);
         $stmt->execute();
         $stmt->bind_result($count);
@@ -135,10 +135,33 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
         }
     }
 }
+
+// New PHP function to check email availability
+function checkEmailAvailability($email)
+{
+    global $conexion;
+    $stmt = $conexion->prepare("SELECT COUNT(*) FROM usuario WHERE correo = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $stmt->bind_result($count);
+    $stmt->fetch();
+    $stmt->close();
+    return $count == 0;
+}
+
+// AJAX endpoint for email validation
+if (isset($_GET['check_email'])) {
+    $email = $_GET['check_email'];
+    $isAvailable = checkEmailAvailability($email);
+    $isValid = filter_var($email, FILTER_VALIDATE_EMAIL) !== false;
+    echo json_encode(['available' => $isAvailable, 'valid' => $isValid]);
+    exit;
+}
 ?>
 
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -146,6 +169,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     <link rel="stylesheet" href="css/registro.css">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
 </head>
+
 <body>
     <div class="container">
         <button class="back-button" onclick="window.location.href='index.php'">← Volver</button>
@@ -175,19 +199,21 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                         <input type="hidden" name="tipo_registro" value="prospecto">
                         <div class="form-group">
                             <label for="nombre">Nombre(s):</label>
-                            <input type="text" id="nombre" name="nombre" required pattern="[A-Za-z ]{2,}" 
-                                    title="Ingrese al menos 2 letras, sin numeros">
+                            <input type="text" id="nombre" name="nombre" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]{2,}"
+                                title="Ingrese al menos 2 letras, sin números">
                         </div>
+
 
                         <div class="form-group">
                             <label for="primerApellido">Primer Apellido:</label>
-                            <input type="text" id="primerApellido" name="primerApellido" required pattern="[A-Za-z]{2,}"
+                            <input type="text" id="primerApellido" name="primerApellido" required
+                                pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}"
                                 title="Ingrese al menos 2 letras, sin números ni espacios">
                         </div>
 
                         <div class="form-group">
                             <label for="segundoApellido">Segundo Apellido:</label>
-                            <input type="text" id="segundoApellido" name="segundoApellido" pattern="[A-Za-z]*"
+                            <input type="text" id="segundoApellido" name="segundoApellido" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ]*"
                                 title="Solo se permiten letras, sin números ni espacios">
                         </div>
 
@@ -195,6 +221,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
                             <label for="fechaNacimiento">Fecha de Nacimiento:</label>
                             <input type="date" id="fechaNacimiento" name="fechaNacimiento" required
                                 max="<?php echo date('Y-m-d', strtotime('-18 years')); ?>">
+                            <small id="errorMensaje" style="color: red; display: none;">Debes ser mayor a 18 años.</small>
                         </div>
 
                         <div class="form-group">
@@ -248,7 +275,8 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                         <div class="form-group">
                             <label for="ciudad">Ciudad:</label>
-                            <input type="text" id="ciudad" name="ciudad" required>
+                            <input type="text" id="ciudad" name="ciudad" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]{2,}"
+                            title="Ingrese al menos 2 letras, sin números">
                         </div>
 
                         <div class="form-group">
@@ -274,19 +302,20 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
                         <div class="form-group">
                             <label for="nombreCont">Nombre del Contacto:</label>
-                            <input type="text" id="nombreCont" name="nombreCont" required minlength="2">
+                            <input type="text" id="nombreCont" name="nombreCont" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ ]{2,}"
+                            title="Ingrese al menos 2 letras, sin números">
                         </div>
 
                         <div class="form-group">
                             <label for="primerApellidoCont">Primer Apellido del Contacto:</label>
-                            <input type="text" id="primerApellidoCont" name="primerApellidoCont" required
-                                pattern="[A-Za-z]{2,}" title="Ingrese al menos 2 letras, sin espacios">
+                            <input type="text" id="primerApellidoCont" name="primerApellidoCont" required pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}"
+                            title="Ingrese al menos 2 letras, sin números ni espacios">
                         </div>
 
                         <div class="form-group">
                             <label for="segundoApellidoCont">Segundo Apellido del Contacto:</label>
-                            <input type="text" id="segundoApellidoCont" name="segundoApellidoCont" pattern="[A-Za-z]*"
-                                title="Solo se permiten letras, sin espacios">
+                            <input type="text" id="segundoApellidoCont" name="segundoApellidoCont" pattern="[A-Za-zÁÉÍÓÚáéíóúÑñ]{2,}"
+                            title="Ingrese al menos 2 letras, sin números ni espacios">
                         </div>
 
                         <div class="form-group">
@@ -411,6 +440,66 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
             });
 
             calculateProgress(); // Calcula el progreso inicial
+
+            // New JavaScript for real-time email validation
+            function validateEmail(email) {
+                const re = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+                return re.test(String(email).toLowerCase());
+            }
+
+            function checkEmail(inputElement) {
+                const email = inputElement.value;
+                const statusElement = inputElement.nextElementSibling;
+
+                if (!validateEmail(email)) {
+                    statusElement.textContent = "El correo electrónico no es válido.";
+                    statusElement.className = "email-status invalid";
+                    return;
+                }
+
+                fetch(`registro.php?check_email=${encodeURIComponent(email)}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.valid && data.available) {
+                            statusElement.textContent = "El correo electrónico es válido y está disponible.";
+                            statusElement.className = "email-status valid";
+                        } else if (data.valid && !data.available) {
+                            statusElement.textContent = "El correo electrónico ya está registrado.";
+                            statusElement.className = "email-status invalid";
+                        } else {
+                            statusElement.textContent = "El correo electrónico no es válido.";
+                            statusElement.className = "email-status invalid";
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        statusElement.textContent = "Error al verificar el correo electrónico.";
+                        statusElement.className = "email-status invalid";
+                    });
+            }
+
+            // Add event listeners to email inputs
+            document.querySelectorAll('input[type="email"]').forEach(input => {
+                const statusElement = document.createElement('div');
+                statusElement.className = 'email-status';
+                input.parentNode.insertBefore(statusElement, input.nextSibling);
+
+                input.addEventListener('input', () => checkEmail(input));
+            });
+
+            document.getElementById('fechaNacimiento').addEventListener('change', function () {
+                const fechaNacimiento = new Date(this.value);
+                const hoy = new Date();
+                const edadMinima = 18;
+                const fechaLimite = new Date(hoy.getFullYear() - edadMinima, hoy.getMonth(), hoy.getDate());
+
+                const mensajeError = document.getElementById('errorMensaje');
+                if (fechaNacimiento > fechaLimite) {
+                    mensajeError.style.display = 'block';
+                } else {
+                    mensajeError.style.display = 'none';
+                }
+            });
         }
     </script>
 </body>

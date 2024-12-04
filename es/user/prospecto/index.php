@@ -1,6 +1,7 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
+
 
 // Verificar si el usuario está autenticado
 if (!isset($_SESSION['user_id'])) {

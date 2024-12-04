@@ -2,10 +2,10 @@
 $servername = "localhost";
 $username = "root";
 $password = "";
-$dbname = "Outsourcing";
+$dbname = "outsourcing";
 
 // Intentar establecer la conexión
-$conexion = mysqli_connect('localhost', 'root', '', 'Outsourcing', null, '/var/run/mysqld/mysqld.sock');
+$conexion = mysqli_connect('localhost', 'root', '', 'outsourcing');
 // Verificar la conexión
 
 if ($conexion) {

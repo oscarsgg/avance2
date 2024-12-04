@@ -28,7 +28,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
     // Encriptar la contraseña ingresada por el usuario
     $contrasenia_encriptada = sha1($contrasenia);
 
-    $query = "SELECT numero, rol, estado FROM Usuario WHERE correo = ? AND contrasenia = ?";
+    $query = "SELECT numero, rol, estado FROM usuario WHERE correo = ? AND contrasenia = ?";
     $stmt = mysqli_prepare($conexion, $query);
     mysqli_stmt_bind_param($stmt, "ss", $correo, $contrasenia_encriptada);
     mysqli_stmt_execute($stmt);

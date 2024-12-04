@@ -1,7 +1,6 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
-
+include_once('../../../../Outsourcing/config.php');
 // Set headers to always return JSON
 header('Content-Type: application/json');
 
@@ -54,11 +53,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $firma_ruta = '';
     if (isset($_FILES['firma']) && $_FILES['firma']['error'] == 0) {
         $firma_nombre = 'firma_' . time() . '.png';
-        $firma_ruta = $_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/firmas/' . $firma_nombre;
+        $firma_ruta = '../../../../Outsourcing/firmas/' . $firma_nombre;
         
         // Asegurarse de que la carpeta 'firmas' existe
-        if (!file_exists($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/firmas')) {
-            if (!mkdir($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/firmas', 0777, true)) {
+        if (!file_exists('../../../../Outsourcing/firmas')) {
+            if (!mkdir('../../../../Outsourcing/firmas', 0777, true)) {
                 returnError('No se pudo crear el directorio para las firmas');
             }
         }

@@ -1,6 +1,7 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
+
 
 // Verificar si el usuario está autenticado y es un prospecto
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'PRO') {
@@ -14,11 +15,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['firma_prospecto']) &&
 
     // Generar un nombre único para el archivo de firma
     $firma_nombre = 'firma_prospecto_' . time() . '.png';
-    $firma_ruta = $_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/firmas/' . $firma_nombre;
+    $firma_ruta = '../../../../Outsourcing/firmas/' . $firma_nombre;
 
     // Asegurarse de que la carpeta 'firmas' existe
-    if (!file_exists($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/firmas')) {
-        if (!mkdir($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/firmas', 0777, true)) {
+    if (!file_exists('../../../../Outsourcing/firmas')) {
+        if (!mkdir('../../../../Outsourcing/firmas', 0777, true)) {
             echo json_encode(['success' => false, 'message' => 'No se pudo crear el directorio para las firmas']);
             exit();
         }

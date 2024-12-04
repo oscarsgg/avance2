@@ -1,3 +1,19 @@
+<?php
+    // Obtener los datos del prospecto
+    $query = "SELECT p.*, u.correo, u.foto FROM prospecto AS p 
+            INNER JOIN usuario AS u ON p.usuario = u.numero 
+            WHERE u.numero = ?";
+    $stmt = $conexion->prepare($query);
+    $stmt->bind_param("i", $user_id);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $prospecto = $result->fetch_assoc();
+
+    if (!$prospecto) {
+        die("No se encontró el perfil del prospecto.");
+    }
+?>
+
 <!DOCTYPE html>
 <html lang="en">
 
@@ -401,7 +417,9 @@
                 </div>
                 <div class="head">
                     <div class="user-img">
-                        <img src="img/user.jpg" alt="No photo">
+                        <img
+                            src="<?php echo $prospecto['foto'] ? '../../../../Outsourcing/img/' . htmlspecialchars($prospecto['foto']) : 'img/default.jpg'; ?>"
+                            alt="Foto de perfil">
                     </div>
                     <div class="user-details">
                         <p class="title">Experto en almejas</p>

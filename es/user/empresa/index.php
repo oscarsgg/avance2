@@ -47,7 +47,7 @@ mysqli_stmt_execute($stmt_solicitudes);
 $resultado_solicitudes = mysqli_stmt_get_result($stmt_solicitudes);
 
 // Obtener vacantes recientes
-$query_vacantes = "SELECT * FROM Vacante WHERE empresa = ? ORDER BY fechaInicio DESC LIMIT 5";
+$query_vacantes = "SELECT * FROM vacante WHERE empresa = ? ORDER BY fechaInicio DESC LIMIT 5";
 $stmt_vacantes = mysqli_prepare($conexion, $query_vacantes);
 mysqli_stmt_bind_param($stmt_vacantes, "i", $empresa['numero']);
 mysqli_stmt_execute($stmt_vacantes);

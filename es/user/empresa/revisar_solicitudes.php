@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
 
 // Verificar si el usuario está logueado y es una empresa
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
 $user_id = $_SESSION['user_id'];
 
 // Obtener el número de la empresa asociada al usuario
-$query_empresa = "SELECT numero FROM Empresa WHERE usuario = $user_id";
+$query_empresa = "SELECT numero FROM empresa WHERE usuario = $user_id";
 $result_empresa = mysqli_query($conexion, $query_empresa);
 
 if (mysqli_num_rows($result_empresa) == 0) {

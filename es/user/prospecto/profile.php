@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
 
 // Verificar si el usuario está autenticado
 if (!isset($_SESSION['user_id'])) {
@@ -10,12 +10,11 @@ if (!isset($_SESSION['user_id'])) {
 
 $user_id = $_SESSION['user_id'];
 
-
 $error = '';
 $success = '';
 
 // Obtener los datos del prospecto
-$query = "SELECT p.*, u.correo FROM prospecto AS p 
+$query = "SELECT p.*, u.correo, u.foto FROM prospecto AS p 
           INNER JOIN usuario AS u ON p.usuario = u.numero 
           WHERE u.numero = ?";
 $stmt = $conexion->prepare($query);
@@ -26,6 +25,55 @@ $prospecto = $result->fetch_assoc();
 
 if (!$prospecto) {
     die("No se encontró el perfil del prospecto.");
+}
+
+// Procesar la actualización de la foto de perfil
+if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['action']) && $_POST['action'] == 'update_profile_picture') {
+    if (isset($_FILES['profile_picture']) && $_FILES['profile_picture']['error'] == 0) {
+        $allowed = array("jpg" => "image/jpg", "jpeg" => "image/jpeg", "gif" => "image/gif", "png" => "image/png");
+        $filename = $_FILES["profile_picture"]["name"];
+        $filetype = $_FILES["profile_picture"]["type"];
+        $filesize = $_FILES["profile_picture"]["size"];
+
+        // Verify file extension
+        $ext = pathinfo($filename, PATHINFO_EXTENSION);
+        if (!array_key_exists($ext, $allowed)) {
+            $error = "Error: Por favor selecciona un formato de archivo válido.";
+        }
+
+        // Verify file size - 5MB maximum
+        $maxsize = 5 * 1024 * 1024;
+        if ($filesize > $maxsize) {
+            $error = "Error: El tamaño del archivo es mayor que el límite permitido (5MB).";
+        }
+
+        // Verify MYME type of the file
+        if (in_array($filetype, $allowed)) {
+            // Check whether file exists before uploading it
+            $new_filename = "profile_" . date("YmdHis") . "." . $ext;
+            $target = "../../../../Outsourcing/img/" . $new_filename;
+
+            if (move_uploaded_file($_FILES["profile_picture"]["tmp_name"], $target)) {
+                // Update database with new file path
+                $update_query = "UPDATE usuario SET foto = ? WHERE numero = ?";
+                $update_stmt = $conexion->prepare($update_query);
+                $update_stmt->bind_param("si", $new_filename, $user_id);
+
+                if ($update_stmt->execute()) {
+                    $success = "La foto de perfil se ha actualizado correctamente.";
+                    $prospecto['foto'] = $new_filename; // Update the current session data
+                } else {
+                    $error = "Hubo un problema al actualizar la base de datos.";
+                }
+            } else {
+                $error = "Lo sentimos, hubo un error subiendo tu archivo.";
+            }
+        } else {
+            $error = "Error: Ha ocurrido un problema con la subida del archivo. Por favor intenta de nuevo.";
+        }
+    } else {
+        $error = "Error: " . $_FILES["profile_picture"]["error"];
+    }
 }
 
 // Calcular la edad usando el procedimiento almacenado
@@ -65,8 +113,8 @@ while ($row = $result_exp->fetch_assoc()) {
 
 // Obtener carreras estudiadas
 $query_edu = "SELECT c.codigo, c.nombre, ce.anioConcluido 
-              FROM Carreras_estudiadas ce 
-              JOIN Carrera c ON ce.carrera = c.codigo 
+              FROM carreras_estudiadas ce 
+              INNER JOIN carrera AS c ON ce.carrera = c.codigo 
               WHERE ce.prospecto = ?";
 $stmt_edu = $conexion->prepare($query_edu);
 $stmt_edu->bind_param("i", $prospecto['numero']);
@@ -99,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 // Actualizar en la base de datos
-                $stmt = $conexion->prepare("UPDATE Prospecto SET numTel = ?, fechaNacimiento = ?, resumen = ? WHERE numero = ?");
+                $stmt = $conexion->prepare("UPDATE prospecto SET numTel = ?, fechaNacimiento = ?, resumen = ? WHERE numero = ?");
 
                 // Convert the formatted date to a variable
                 $formattedFechaNacimiento = $fechaNacimiento->format('Y-m-d');
@@ -120,12 +168,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             case 'update_education':
                 // Eliminar educación existente
-                $stmt = $conexion->prepare("DELETE FROM Carreras_estudiadas WHERE prospecto = ?");
+                $stmt = $conexion->prepare("DELETE FROM carreras_estudiadas WHERE prospecto = ?");
                 $stmt->bind_param("i", $prospecto['numero']);
                 $stmt->execute();
 
                 // Insertar nueva educación
-                $stmt = $conexion->prepare("INSERT INTO Carreras_estudiadas (prospecto, carrera, anioConcluido) VALUES (?, ?, ?)");
+                $stmt = $conexion->prepare("INSERT INTO carreras_estudiadas (prospecto, carrera, anioConcluido) VALUES (?, ?, ?)");
                 foreach ($_POST['carrera'] as $index => $carrera) {
                     $anioConcluido = $_POST['anioConcluido'][$index];
 
@@ -178,14 +226,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             if ($exp_id && in_array($exp_id, $existing_exp_ids)) {
                                 // Actualizar experiencia existente
-                                $stmt_update_exp = $conexion->prepare("UPDATE Experiencia SET puesto = ?, nombreEmpresa = ?, fechaInicio = ?, fechaFin = ? WHERE numero = ? AND prospecto = ?");
+                                $stmt_update_exp = $conexion->prepare("UPDATE experiencia SET puesto = ?, nombreEmpresa = ?, fechaInicio = ?, fechaFin = ? WHERE numero = ? AND prospecto = ?");
                                 $stmt_update_exp->bind_param("ssssii", $puesto, $empresa, $fechaInicio, $fechaFin, $exp_id, $prospecto['numero']);
                                 if (!$stmt_update_exp->execute()) {
                                     throw new Exception('Error al actualizar experiencia.');
                                 }
                             } else {
                                 // Insertar nueva experiencia
-                                $stmt_insert_exp = $conexion->prepare("INSERT INTO Experiencia (prospecto, puesto, nombreEmpresa, fechaInicio, fechaFin) VALUES (?, ?, ?, ?, ?)");
+                                $stmt_insert_exp = $conexion->prepare("INSERT INTO experiencia (prospecto, puesto, nombreEmpresa, fechaInicio, fechaFin) VALUES (?, ?, ?, ?, ?)");
                                 $stmt_insert_exp->bind_param("issss", $prospecto['numero'], $puesto, $empresa, $fechaInicio, $fechaFin);
                                 if (!$stmt_insert_exp->execute()) {
                                     throw new Exception('Error al insertar experiencia.');
@@ -198,12 +246,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             // Procesar responsabilidades
                             if (isset($_POST['responsabilidades'][$index]) && is_array($_POST['responsabilidades'][$index])) {
                                 // Eliminar responsabilidades existentes para esta experiencia
-                                $stmt_delete_resp = $conexion->prepare("DELETE FROM Responsabilidades WHERE experiencia = ?");
+                                $stmt_delete_resp = $conexion->prepare("DELETE FROM responsabilidades WHERE experiencia = ?");
                                 $stmt_delete_resp->bind_param("i", $exp_id);
                                 $stmt_delete_resp->execute();
 
                                 // Insertar nuevas responsabilidades
-                                $stmt_insert_resp = $conexion->prepare("INSERT INTO Responsabilidades (experiencia, descripcion) VALUES (?, ?)");
+                                $stmt_insert_resp = $conexion->prepare("INSERT INTO responsabilidades (experiencia, descripcion) VALUES (?, ?)");
                                 foreach ($_POST['responsabilidades'][$index] as $resp) {
                                     $stmt_insert_resp->bind_param("is", $exp_id, $resp);
                                     if (!$stmt_insert_resp->execute()) {
@@ -341,6 +389,39 @@ $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
             color: #2e7d32;
         }
 
+        .profile-picture-container {
+            position: relative;
+            width: 150px;
+            height: 150px;
+            margin: 0 auto;
+            overflow: hidden;
+            border-radius: 50%;
+        }
+
+        .profile-picture {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .profile-picture-upload {
+            
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+            color: white;
+            text-align: center;
+            padding: 5px;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+
+        #profile-picture-input {
+            display: none;
+        }
+
         @keyframes fadeIn {
             from {
                 opacity: 0;
@@ -368,7 +449,12 @@ $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
 
     <div class="card">
         <div class="card__img"></div>
-        <div class="card__avatar"><img src="img/user.jpg" alt="Foto de perfil" class="profile-image"></div>
+        <div class="card__avatar"><img
+                src="<?php echo $prospecto['foto'] ? '../../../../Outsourcing/img/' . htmlspecialchars($prospecto['foto']) : 'img/default.jpg'; ?>"
+                alt="Foto de perfil" class="profile-image">
+            <label for="profile-picture-input" class="profile-picture-upload">Cambiar foto</label>
+            <input type="file" id="profile-picture-input" accept="image/*">
+        </div>
         <div class="card__title">
             <h2><?php echo htmlspecialchars($prospecto['nombre'] . ' ' . $prospecto['primerApellido'] . ' ' . $prospecto['segundoApellido']); ?>
             </h2>
@@ -385,7 +471,7 @@ $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
 
                 // Mostrar el texto completo
                 echo htmlspecialchars($aniosFormat) . ' años de experiencia laboral';
-            } 
+            }
             ?>
         </div>
 
@@ -419,14 +505,14 @@ $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
 
                         </div>
                     </div>
-                    
+
                     <button id="editAboutMeBtn" class="editarboton">
-                    Editar información básica
-                    <svg viewBox="0 0 512 512" class="salvaje">
-                        <path
-                        d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"
-                        ></path>
-                    </svg>
+                        Editar información básica
+                        <svg viewBox="0 0 512 512" class="salvaje">
+                            <path
+                                d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z">
+                            </path>
+                        </svg>
                     </button>
 
 
@@ -448,12 +534,12 @@ $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
                     </div>
 
                     <button id="editEducationBtn" class="editarboton">
-                    Editar Historial Académico
-                    <svg viewBox="0 0 512 512" class="salvaje">
-                        <path
-                        d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"
-                        ></path>
-                    </svg>
+                        Editar Historial Académico
+                        <svg viewBox="0 0 512 512" class="salvaje">
+                            <path
+                                d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z">
+                            </path>
+                        </svg>
                     </button>
 
                 </div>
@@ -482,12 +568,12 @@ $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
                     </div>
 
                     <button id="editExperienceBtn" class="editarboton">
-                    Editar Experiencia
-                    <svg viewBox="0 0 512 512" class="salvaje">
-                        <path
-                        d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z"
-                        ></path>
-                    </svg>
+                        Editar Experiencia
+                        <svg viewBox="0 0 512 512" class="salvaje">
+                            <path
+                                d="M410.3 231l11.3-11.3-33.9-33.9-62.1-62.1L291.7 89.8l-11.3 11.3-22.6 22.6L58.6 322.9c-10.4 10.4-18 23.3-22.2 37.4L1 480.7c-2.5 8.4-.2 17.5 6.1 23.7s15.3 8.5 23.7 6.1l120.3-35.4c14.1-4.2 27-11.8 37.4-22.2L387.7 253.7 410.3 231zM160 399.4l-9.1 22.7c-4 3.1-8.5 5.4-13.3 6.9L59.4 452l23-78.1c1.4-4.9 3.8-9.4 6.9-13.3l22.7-9.1v32c0 8.8 7.2 16 16 16h32zM362.7 18.7L348.3 33.2 325.7 55.8 314.3 67.1l33.9 33.9 62.1 62.1 33.9 33.9 11.3-11.3 22.6-22.6 14.5-14.5c25-25 25-65.5 0-90.5L453.3 18.7c-25-25-65.5-25-90.5 0zm-47.4 168l-144 144c-6.2 6.2-16.4 6.2-22.6 0s-6.2-16.4 0-22.6l144-144c6.2-6.2 16.4-6.2 22.6 0s6.2 16.4 0 22.6z">
+                            </path>
+                        </svg>
                     </button>
 
                 </div>
@@ -548,7 +634,7 @@ $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
                                     value="<?php echo htmlspecialchars($edu['anioConcluido']); ?>" required min="1900"
                                     max="<?php echo date('Y'); ?>">
                                 <button type="button" class="remove-education">Eliminar</button>
-                                
+
                             </div>
                         <?php endforeach; ?>
                     <?php endif; ?>
@@ -584,7 +670,7 @@ $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
                                         <input type="text" name="responsabilidades[<?php echo $index; ?>][]"
                                             value="<?php echo htmlspecialchars($resp['descripcion']); ?>" required>
                                         <button type="button" class="remove-responsabilidad">Eliminar</button>
-                                        
+
                                     </div>
                                 <?php endforeach; ?>
                             </div>
@@ -598,6 +684,19 @@ $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
             </form>
         </div>
     </div>
+
+    <div id="profilePictureModal" class="modal">
+        <div class="modal-content">
+            <span class="close">&times;</span>
+            <h2>Actualizar foto de perfil</h2>
+            <form id="profilePictureForm" method="post" enctype="multipart/form-data">
+                <input type="hidden" name="action" value="update_profile_picture">
+                <input type="file" name="profile_picture" accept="image/*" required>
+                <button type="submit" class="btn-submit">Guardar cambios</button>
+            </form>
+        </div>
+    </div>
+
 
     <script>
         $(document).ready(function () {
@@ -656,9 +755,9 @@ $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
                     <div class="education-item">
                         <select name="carrera[]" required>
                             <?php foreach ($todas_carreras as $carrera): ?>
-                                        <option value="<?php echo htmlspecialchars($carrera['codigo']); ?>">
-                                            <?php echo htmlspecialchars($carrera['nombre']); ?>
-                                        </option>
+                                                <option value="<?php echo htmlspecialchars($carrera['codigo']); ?>">
+                                                    <?php echo htmlspecialchars($carrera['nombre']); ?>
+                                                </option>
                             <?php endforeach; ?>
                         </select>
                         <input type="number" name="anioConcluido[]" required min="1900" max="<?php echo date('Y'); ?>">
@@ -713,6 +812,48 @@ $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
             // Remove responsabilidad
             $(document).on('click', '.remove-responsabilidad', function () {
                 $(this).closest('.responsabilidad-item').remove();
+            });
+
+            const profilePictureInput = document.getElementById('profile-picture-input');
+            const profilePictureModal = document.getElementById('profilePictureModal');
+            const profilePictureForm = document.getElementById('profilePictureForm');
+
+            profilePictureInput.addEventListener('change', function () {
+                if (this.files && this.files[0]) {
+                    const formData = new FormData(profilePictureForm);
+                    formData.append('profile_picture', this.files[0]);
+
+                    $.ajax({
+                        url: 'profile.php',
+                        type: 'POST',
+                        data: formData,
+                        processData: false,
+                        contentType: false,
+                        success: function (response) {
+                            location.reload(); // Reload the page to show the updated picture
+                        },
+                        error: function () {
+                            alert('Hubo un error al subir la imagen. Por favor, inténtalo de nuevo.');
+                        }
+                    });
+                }
+            });
+
+            // Show profile picture modal
+            $('.profile-picture-upload').click(function () {
+                profilePictureModal.style.display = 'block';
+            });
+
+            // Close profile picture modal
+            $('.close').click(function () {
+                profilePictureModal.style.display = 'none';
+            });
+
+            // Close modal when clicking outside
+            $(window).click(function (event) {
+                if (event.target == profilePictureModal) {
+                    profilePictureModal.style.display = 'none';
+                }
             });
         });
     </script>

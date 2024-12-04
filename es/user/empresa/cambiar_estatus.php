@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
 
 // Verificar si el usuario está logueado y es una empresa
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $nuevo_estatus = isset($_POST['nuevo_estatus']) ? $_POST['nuevo_estatus'] : null;
 
     if ($prospecto && $vacante && $nuevo_estatus) {
-        $sql_update = "UPDATE Solicitud SET estatus = ? WHERE prospecto = ? AND vacante = ?";
+        $sql_update = "UPDATE solicitud SET estatus = ? WHERE prospecto = ? AND vacante = ?";
         $stmt = $conexion->prepare($sql_update);
         $stmt->bind_param("sii", $nuevo_estatus, $prospecto, $vacante);
 

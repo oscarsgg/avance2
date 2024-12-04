@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
 
 // Verificar si el usuario está autenticado y es un administrador
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'ADM') {
@@ -15,7 +15,7 @@ if ($conexion->connect_error) {
 
 // Consulta SQL para obtener el número de usuarios registrados por día
 $sql = "SELECT DATE(fechaRegistro) as fecha, COUNT(*) as total 
-        FROM Usuario 
+        FROM usuario 
         GROUP BY DATE(fechaRegistro) 
         ORDER BY DATE(fechaRegistro) DESC
         LIMIT 30";
@@ -43,14 +43,14 @@ $activity_query = "
         correo AS detalle,
         fechaRegistro AS fecha,
         'Usuario' AS entidad
-    FROM Usuario)
+    FROM usuario)
     UNION
     (SELECT 
         'Publicación de Vacante' AS actividad,
         titulo AS detalle,
         fechaInicio AS fecha,
         'Vacante' AS entidad
-    FROM Vacante)
+    FROM vacante)
     ORDER BY fecha DESC
     LIMIT 7
 ";

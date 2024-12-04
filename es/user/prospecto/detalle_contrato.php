@@ -1,6 +1,7 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
+
 
 // Verificar si el usuario está logueado y es un prospecto
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'PRO') {
@@ -43,7 +44,7 @@ $query = "SELECT c.*, v.titulo AS vacante_titulo, v.es_directo, v.empresa AS emp
           INNER JOIN vacante AS v ON c.vacante = v.numero
           INNER JOIN empresa AS e ON v.empresa = e.numero
           INNER JOIN prospecto AS p ON c.prospecto = p.numero
-          INNER JOIN tipo_Contrato AS tc ON c.tipo_contrato = tc.codigo
+          INNER JOIN tipo_contrato AS tc ON c.tipo_contrato = tc.codigo
           WHERE c.numero = ?";
 
 $stmt = $conexion->prepare($query);
@@ -57,7 +58,7 @@ if (!$contrato) {
 }
 
 // Obtener los requerimientos de la vacante
-$query_req = "SELECT descripcion FROM Requerimiento WHERE vacante = ?";
+$query_req = "SELECT descripcion FROM requerimiento WHERE vacante = ?";
 $stmt_req = $conexion->prepare($query_req);
 $stmt_req->bind_param("i", $contrato['vacante']);
 $stmt_req->execute();
@@ -187,7 +188,7 @@ $contenido_contrato .= "
 ";
 
 // Obtener las firmas guardadas
-$query = "SELECT firma_empresa, firma_prospecto FROM Contrato WHERE numero = ?";
+$query = "SELECT firma_empresa, firma_prospecto FROM contrato WHERE numero = ?";
 $stmt = $conexion->prepare($query);
 $stmt->bind_param("i", $contrato_id);
 $stmt->execute();

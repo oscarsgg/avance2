@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
 
 // Verificar si el usuario está autenticado y es un administrador
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'ADM') {
@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $fechaInicio = $_POST['fechaInicio'];
                 $fechaCierre = $_POST['fechaCierre'];
                 
-                $stmt = $conexion->prepare("INSERT INTO Vacante (titulo, estado, empresa, fechaInicio, fechaCierre) VALUES (?, ?, ?, ?, ?)");
+                $stmt = $conexion->prepare("INSERT INTO vacante (titulo, estado, empresa, fechaInicio, fechaCierre) VALUES (?, ?, ?, ?, ?)");
                 $stmt->bind_param("siiss", $titulo, $estado, $empresa, $fechaInicio, $fechaCierre);
                 $stmt->execute();
                 break;
@@ -63,7 +63,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $fechaInicio = $_POST['fechaInicio'];
                 $fechaCierre = $_POST['fechaCierre'];
                 
-                $stmt = $conexion->prepare("UPDATE Vacante SET titulo = ?, estado = ?, fechaInicio = ?, fechaCierre = ? WHERE numero = ?");
+                $stmt = $conexion->prepare("UPDATE vacante SET titulo = ?, estado = ?, fechaInicio = ?, fechaCierre = ? WHERE numero = ?");
                 $stmt->bind_param("sissi", $titulo, $estado, $fechaInicio, $fechaCierre, $id);
                 $stmt->execute();
                 break;
@@ -71,7 +71,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             case 'eliminar':
                 $id = $_POST['id'];
                 
-                $stmt = $conexion->prepare("DELETE FROM Vacante WHERE numero = ?");
+                $stmt = $conexion->prepare("DELETE FROM vacante WHERE numero = ?");
                 $stmt->bind_param("i", $id);
                 $stmt->execute();
                 break;

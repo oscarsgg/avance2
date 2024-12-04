@@ -1,6 +1,7 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
+
 
 // Verificar si el usuario está autenticado
 if (!isset($_SESSION['user_id'])) {
@@ -61,8 +62,8 @@ while ($row = $result_exp->fetch_assoc()) {
 
 // Obtener carreras estudiadas
 $query_edu = "SELECT c.codigo, c.nombre, ce.anioConcluido 
-              FROM Carreras_estudiadas ce 
-              JOIN Carrera c ON ce.carrera = c.codigo 
+              FROM carreras_estudiadas ce 
+              INNER JOIN carrera c ON ce.carrera = c.codigo 
               WHERE ce.prospecto = ?";
 $stmt_edu = $conexion->prepare($query_edu);
 $stmt_edu->bind_param("i", $prospecto['numero']);
@@ -95,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 // Actualizar en la base de datos
-                $stmt = $conexion->prepare("UPDATE Prospecto SET numTel = ?, fechaNacimiento = ?, resumen = ? WHERE numero = ?");
+                $stmt = $conexion->prepare("UPDATE prospecto SET numTel = ?, fechaNacimiento = ?, resumen = ? WHERE numero = ?");
 
                 // Convert the formatted date to a variable
                 $formattedFechaNacimiento = $fechaNacimiento->format('Y-m-d');
@@ -114,12 +115,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             case 'update_education':
                 // Eliminar educación existente
-                $stmt = $conexion->prepare("DELETE FROM Carreras_estudiadas WHERE prospecto = ?");
+                $stmt = $conexion->prepare("DELETE FROM carreras_estudiadas WHERE prospecto = ?");
                 $stmt->bind_param("i", $prospecto['numero']);
                 $stmt->execute();
 
                 // Insertar nueva educación
-                $stmt = $conexion->prepare("INSERT INTO Carreras_estudiadas (prospecto, carrera, anioConcluido) VALUES (?, ?, ?)");
+                $stmt = $conexion->prepare("INSERT INTO carreras_estudiadas (prospecto, carrera, anioConcluido) VALUES (?, ?, ?)");
                 foreach ($_POST['carrera'] as $index => $carrera) {
                     $anioConcluido = $_POST['anioConcluido'][$index];
 
@@ -146,7 +147,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                 try {
                     // Obtener las experiencias existentes del prospecto
-                    $stmt = $conexion->prepare("SELECT numero FROM Experiencia WHERE prospecto = ?");
+                    $stmt = $conexion->prepare("SELECT numero FROM experiencia WHERE prospecto = ?");
                     $stmt->bind_param("i", $prospecto['numero']);
                     $stmt->execute();
                     $result = $stmt->get_result();
@@ -169,14 +170,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             if ($exp_id && in_array($exp_id, $existing_exp_ids)) {
                                 // Actualizar experiencia existente
-                                $stmt_update_exp = $conexion->prepare("UPDATE Experiencia SET puesto = ?, nombreEmpresa = ?, fechaInicio = ?, fechaFin = ? WHERE numero = ? AND prospecto = ?");
+                                $stmt_update_exp = $conexion->prepare("UPDATE experiencia SET puesto = ?, nombreEmpresa = ?, fechaInicio = ?, fechaFin = ? WHERE numero = ? AND prospecto = ?");
                                 $stmt_update_exp->bind_param("ssssii", $puesto, $empresa, $fechaInicio, $fechaFin, $exp_id, $prospecto['numero']);
                                 if (!$stmt_update_exp->execute()) {
                                     throw new Exception('Error al actualizar experiencia.');
                                 }
                             } else {
                                 // Insertar nueva experiencia
-                                $stmt_insert_exp = $conexion->prepare("INSERT INTO Experiencia (prospecto, puesto, nombreEmpresa, fechaInicio, fechaFin) VALUES (?, ?, ?, ?, ?)");
+                                $stmt_insert_exp = $conexion->prepare("INSERT INTO experiencia (prospecto, puesto, nombreEmpresa, fechaInicio, fechaFin) VALUES (?, ?, ?, ?, ?)");
                                 $stmt_insert_exp->bind_param("issss", $prospecto['numero'], $puesto, $empresa, $fechaInicio, $fechaFin);
                                 if (!$stmt_insert_exp->execute()) {
                                     throw new Exception('Error al insertar experiencia.');
@@ -189,12 +190,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             // Procesar responsabilidades
                             if (isset($_POST['responsabilidades'][$index]) && is_array($_POST['responsabilidades'][$index])) {
                                 // Eliminar responsabilidades existentes para esta experiencia
-                                $stmt_delete_resp = $conexion->prepare("DELETE FROM Responsabilidades WHERE experiencia = ?");
+                                $stmt_delete_resp = $conexion->prepare("DELETE FROM responsabilidades WHERE experiencia = ?");
                                 $stmt_delete_resp->bind_param("i", $exp_id);
                                 $stmt_delete_resp->execute();
 
                                 // Insertar nuevas responsabilidades
-                                $stmt_insert_resp = $conexion->prepare("INSERT INTO Responsabilidades (experiencia, descripcion) VALUES (?, ?)");
+                                $stmt_insert_resp = $conexion->prepare("INSERT INTO responsabilidades (experiencia, descripcion) VALUES (?, ?)");
                                 foreach ($_POST['responsabilidades'][$index] as $resp) {
                                     $stmt_insert_resp->bind_param("is", $exp_id, $resp);
                                     if (!$stmt_insert_resp->execute()) {
@@ -209,8 +210,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $exp_to_delete = array_diff($existing_exp_ids, $submitted_exp_ids);
                     if (!empty($exp_to_delete)) {
                         $exp_ids_str = implode(',', $exp_to_delete);
-                        $conexion->query("DELETE FROM Responsabilidades WHERE experiencia IN ($exp_ids_str)");
-                        $conexion->query("DELETE FROM Experiencia WHERE numero IN ($exp_ids_str) AND prospecto = {$prospecto['numero']}");
+                        $conexion->query("DELETE FROM responsabilidades WHERE experiencia IN ($exp_ids_str)");
+                        $conexion->query("DELETE FROM experiencia WHERE numero IN ($exp_ids_str) AND prospecto = {$prospecto['numero']}");
                     }
 
                     $conexion->commit();
@@ -225,7 +226,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 
 // Obtener todas las carreras para el buscador
-$query_all_carreras = "SELECT codigo, nombre FROM Carrera ORDER BY nombre";
+$query_all_carreras = "SELECT codigo, nombre FROM carrera ORDER BY nombre";
 $result_all_carreras = $conexion->query($query_all_carreras);
 $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
 
@@ -338,7 +339,7 @@ $todas_carreras = $result_all_carreras->fetch_all(MYSQLI_ASSOC);
     <div class="containeres">
         <main>
             <div class="profile-header">
-                <img src="img/user.jpg" alt="Foto de perfil" class="profile-image" id="profile-image">
+                <img src="img/default.jpg" alt="Foto de perfil" class="profile-image" id="profile-image">
                 <div class="profile-info">
                     <h1><?php echo htmlspecialchars($prospecto['nombre'] . ' ' . $prospecto['primerApellido'] . ' ' . $prospecto['segundoApellido']); ?>
                     </h1>

@@ -2,7 +2,7 @@
 // gestionar_contratos.php
 
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
 require_once 'check_membership.php';
 
 // Verificar si el usuario está autenticado

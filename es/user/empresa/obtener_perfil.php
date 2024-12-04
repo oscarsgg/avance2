@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
 
 // Verificar si el usuario está logueado y es una empresa
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
@@ -9,7 +9,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
 }
 
 $prospecto_id = $_GET['prospecto_id'];
-$sql = "SELECT * FROM Prospecto WHERE numero = $prospecto_id";
+$sql = "SELECT p.*, u.foto FROM prospecto p JOIN usuario u ON p.usuario = u.numero WHERE p.numero = $prospecto_id";
 $result = $conexion->query($sql);
 ?>
 
@@ -20,6 +20,37 @@ $result = $conexion->query($sql);
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Perfil del Prospecto</title>
     <link rel="stylesheet" href="css/perfilProspecto.css">
+    <style>
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .profile-picture {
+            width: 150px;
+            height: 150px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+            border: 3px solid #fff;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        .profile-info {
+            flex: 1;
+        }
+        .profile-name {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+        .profile-details {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        .profile-details p {
+            margin-right: 20px;
+            margin-bottom: 5px;
+        }
+    </style>
 </head>
 <body>
 
@@ -28,17 +59,26 @@ $result = $conexion->query($sql);
         <?php $prospecto = $result->fetch_assoc(); ?>
         
         <div class="profile-header">
-            <h2><?= $prospecto['nombre'] . ' ' . $prospecto['primerApellido'] . ' ' . $prospecto['segundoApellido']; ?></h2>
-            <p class="dob">📅 Fecha de Nacimiento: <?= $prospecto['fechaNacimiento']; ?></p>
-            <p class="phone">📞 Teléfono: <?= $prospecto['numTel']; ?></p>
-            <p class="summary">💼 <?= $prospecto['resumen']; ?></p>
-            <?php if (!is_null($prospecto['aniosExperiencia'])): ?>
-                <p class="experience">⏏️ Experiencia: 
-                    <?= ($prospecto['aniosExperiencia'] == floor($prospecto['aniosExperiencia'])) 
-                        ? number_format($prospecto['aniosExperiencia'], 0) . ' años' 
-                        : number_format($prospecto['aniosExperiencia'], 1) . ' años'; ?>
-                </p>
-            <?php endif; ?>
+            <img src="<?= $prospecto['foto'] ? '../../../../Outsourcing/img/' . htmlspecialchars($prospecto['foto']) : 'img/default.jpg'; ?>" alt="Foto de perfil" class="profile-picture">
+            <div class="profile-info">
+                <h2 class="profile-name"><?= $prospecto['nombre'] . ' ' . $prospecto['primerApellido'] . ' ' . $prospecto['segundoApellido']; ?></h2>
+                <div class="profile-details">
+                    <p class="dob">📅 Fecha de Nacimiento: <?= $prospecto['fechaNacimiento']; ?></p>
+                    <p class="phone">📞 Teléfono: <?= $prospecto['numTel']; ?></p>
+                    <?php if (!is_null($prospecto['aniosExperiencia'])): ?>
+                        <p class="experience">⏏️ Experiencia: 
+                            <?= ($prospecto['aniosExperiencia'] == floor($prospecto['aniosExperiencia'])) 
+                                ? number_format($prospecto['aniosExperiencia'], 0) . ' años' 
+                                : number_format($prospecto['aniosExperiencia'], 1) . ' años'; ?>
+                        </p>
+                    <?php endif; ?>
+                </div>
+            </div>
+        </div>
+
+        <div class="profile-summary">
+            <h3>Resumen Profesional</h3>
+            <p class="summary">💼 <?= nl2br(htmlspecialchars($prospecto['resumen'])); ?></p>
         </div>
 
         <!-- Carreras Estudiadas -->
@@ -62,13 +102,12 @@ $result = $conexion->query($sql);
 
         <!-- Experiencia Laboral -->
         <?php
-        $sql_experiencia = "SELECT * FROM Experiencia WHERE prospecto = $prospecto_id ORDER BY fechaInicio DESC";
+        $sql_experiencia = "SELECT * FROM experiencia WHERE prospecto = $prospecto_id ORDER BY fechaInicio DESC";
         $result_experiencia = $conexion->query($sql_experiencia);
         ?>
         <?php if ($result_experiencia->num_rows > 0): ?>
             <div class="profile-section">
                 <h3>👔 Experiencia Laboral</h3>
-                <p></p>
                 <?php while($exp = $result_experiencia->fetch_assoc()): ?>
                     <div class="experience-item">
                         <h4><?= $exp['puesto'] . " en " . $exp['nombreEmpresa']; ?></h4>
@@ -77,7 +116,7 @@ $result = $conexion->query($sql);
 
                         <!-- Responsabilidades -->
                         <?php
-                        $sql_responsabilidades = "SELECT * FROM Responsabilidades WHERE experiencia = " . $exp['numero'];
+                        $sql_responsabilidades = "SELECT * FROM responsabilidades WHERE experiencia = " . $exp['numero'];
                         $result_responsabilidades = $conexion->query($sql_responsabilidades);
                         ?>
                         <?php if ($result_responsabilidades->num_rows > 0): ?>

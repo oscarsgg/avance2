@@ -8,15 +8,15 @@ $page = isset($_GET['page']) ? $_GET['page'] : 1;
 $start_from = ($page - 1) * $results_per_page;
 
 // Get total number of vacancies
-$sql_count = "SELECT COUNT(*) AS total FROM Vacante";
+$sql_count = "SELECT COUNT(*) AS total FROM vacante";
 $result_count = $conexion->query($sql_count);
 $row_count = $result_count->fetch_assoc();
 $total_pages = ceil($row_count['total'] / $results_per_page);
 
 // Get vacancies with pagination
 $sql = "SELECT v.numero, v.titulo, v.descripcion, v.salario, v.es_directo, v.cantPostulantes, v.fechaInicio, v.fechaCierre, e.nombre as empresa_nombre, e.ciudad
-        FROM Vacante v
-        INNER JOIN Empresa e ON v.empresa = e.numero
+        FROM vacante AS v
+        INNER JOIN empresa AS e ON v.empresa = e.numero
         ORDER BY v.fechaInicio DESC
         LIMIT $start_from, $results_per_page";
 
@@ -54,7 +54,7 @@ $result = $conexion->query($sql);
                 </svg>
             </div>
             <nav class="main-nav">
-                <a href="#inicio">Inicio</a>
+                <a href="index.php">Inicio</a>
                 <a href="#caracteristicas">Vacantes</a>
                 <a href="#testimonios">Empresas</a>
                 <a href="#contacto">Certificaciones</a>

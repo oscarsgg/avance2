@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
 
 // Verificar si el usuario está autenticado como empresa
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
 $user_id = $_SESSION['user_id'];
 
 // Obtener el número de la empresa asociada al usuario
-$query_empresa = "SELECT numero FROM Empresa WHERE usuario = ?";
+$query_empresa = "SELECT numero FROM empresa WHERE usuario = ?";
 $stmt = $conexion->prepare($query_empresa);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();
@@ -37,11 +37,18 @@ $stmt->execute();
 $result = $stmt->get_result();
 $membresia = $result->fetch_assoc();
 
-// Verificar si la membresía ha expirado
-$membresia_expirada = strtotime($membresia['fechaVencimiento']) < time();
+// Verificar si se encontró una membresía antes de acceder a sus datos
+if ($membresia) {
+    // Verificar si la membresía ha expirado
+    $membresia_expirada = strtotime($membresia['fechaVencimiento']) < time();
+} else {
+    // Manejo de error si no hay membresía
+    $membresia_expirada = true; // O define otro valor predeterminado según la lógica de tu aplicación
+    $membresia = []; // Opcional: para evitar más errores si intentas usar `$membresia` más tarde
+}
 
 // Obtener planes de suscripción
-$query = "SELECT * FROM Plan_suscripcion ORDER BY precio ASC";
+$query = "SELECT * FROM plan_suscripcion ORDER BY precio ASC";
 $result = $conexion->query($query);
 $planes = $result->fetch_all(MYSQLI_ASSOC);
 
@@ -55,13 +62,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numero_tarjeta'])) {
     // Validar los datos de la tarjeta
     if (strlen($numero_tarjeta) !== 16 || !ctype_digit($numero_tarjeta)) {
         $error = "El número de tarjeta debe tener 16 dígitos.";
-    } elseif (strtotime($fecha_vencimiento) <= time()) {
-        $error = "La fecha de vencimiento de la tarjeta no es válida.";
     } elseif (strlen($cvv) !== 3 || !ctype_digit($cvv)) {
         $error = "El CVV debe tener 3 dígitos.";
     } else {
         // Obtener la duración del plan seleccionado
-        $query_plan = "SELECT duracion, nombrePlan FROM Plan_suscripcion WHERE codigo = ?";
+        $query_plan = "SELECT duracion, nombrePlan FROM plan_suscripcion WHERE codigo = ?";
         $stmt = $conexion->prepare($query_plan);
         $stmt->bind_param("s", $plan_seleccionado);
         $stmt->execute();
@@ -74,7 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numero_tarjeta'])) {
         $fecha_vencimiento = date('Y-m-d', strtotime("+$duracion_meses months"));
 
         // Determinar el estado de la membresía
-        $query_count = "SELECT COUNT(*) as total FROM Membresia WHERE empresa = ?";
+        $query_count = "SELECT COUNT(*) as total FROM membresia WHERE empresa = ?";
         $stmt = $conexion->prepare($query_count);
         $stmt->bind_param("i", $empresa_id);
         $stmt->execute();
@@ -83,11 +88,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numero_tarjeta'])) {
         $estado_membresia = ($count['total'] == 0) ? 'NV' : 'REN';
 
         // Insertar la nueva membresía
-        $query_insert = "INSERT INTO Membresia (fechaInicio, fechaVencimiento, empresa, plan_suscripcion, estado_membresia) 
+        $query_insert = "INSERT INTO membresia (fechaInicio, fechaVencimiento, empresa, plan_suscripcion, estado_membresia) 
                          VALUES (?, ?, ?, ?, ?)";
         $stmt = $conexion->prepare($query_insert);
         $stmt->bind_param("ssiss", $fecha_inicio, $fecha_vencimiento, $empresa_id, $plan_seleccionado, $estado_membresia);
-        
+
         if ($stmt->execute()) {
             $success = "¡Pago procesado con éxito! Su membresía ha sido actualizada.";
             // Actualizar la información de la membresía actual
@@ -135,7 +140,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numero_tarjeta'])) {
             </div>
         <?php else: ?>
             <div class="membership-info">
-                <p>Su membresía actual vence el: <span class="membership-date"><?php echo date('d/m/Y', strtotime($membresia['fechaVencimiento'])); ?></span></p>
+                <p>Su membresía actual vence el: <span
+                        class="membership-date"><?php echo date('d/m/Y', strtotime($membresia['fechaVencimiento'])); ?></span>
+                </p>
             </div>
         <?php endif; ?>
 
@@ -153,11 +160,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numero_tarjeta'])) {
                         <?php endif; ?>
                     </ul>
 
-                    <?php if ($membresia['plan_suscripcion'] === $plan['codigo'] && !$membresia_expirada): ?>
+                    <?php if ($membresia && isset($membresia['plan_suscripcion']) && $membresia['plan_suscripcion'] === $plan['codigo'] && !$membresia_expirada): ?>
                         <button class="card__cta cta selected" disabled>Plan Actual</button>
                     <?php elseif ($membresia_expirada): ?>
-                        <button class="card__cta cta select-plan" data-plan="<?php echo $plan['codigo']; ?>">Seleccionar</button>
+                        <button class="card__cta cta select-plan"
+                            data-plan="<?php echo $plan['codigo']; ?>">Seleccionar</button>
                     <?php endif; ?>
+
                 </div>
             <?php endforeach; ?>
         </div>
@@ -171,20 +180,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numero_tarjeta'])) {
                         <input type="hidden" id="plan_id" name="plan_id" value="">
                         <label for="name" class="label">
                             <span class="title">Nombre del propietario de la tarjeta</span>
-                            <input class="input-field" type="text" name="input-name" title="Input title" placeholder="Ingrese el nombre completo" required />
+                            <input class="input-field" type="text" name="input-name" title="Input title"
+                                placeholder="Ingrese el nombre completo" required />
                         </label>
                         <label for="numero_tarjeta" class="label">
                             <span class="title">Número de la tarjeta</span>
-                            <input id="numero_tarjeta" class="input-field" type="text" name="numero_tarjeta" title="Input title" placeholder="0000 0000 0000 0000" required maxlength="16" />
+                            <input id="numero_tarjeta" class="input-field" type="text" name="numero_tarjeta"
+                                title="Input title" placeholder="0000 0000 0000 0000" required maxlength="16" />
                         </label>
                         <div class="split">
                             <label for="fecha_vencimiento" class="label">
                                 <span class="title">Fecha de expiración</span>
-                                <input id="fecha_vencimiento" class="input-field" type="month" name="fecha_vencimiento" title="Expiry Date" placeholder="01/23" required />
+                                <input id="fecha_vencimiento" class="input-field" type="month" name="fecha_vencimiento"
+                                    title="Expiry Date" placeholder="01/23" required />
                             </label>
                             <label for="cvv" class="label">
                                 <span class="title">CVV</span>
-                                <input id="cvv" class="input-field" type="text" name="cvv" title="CVV" placeholder="CVV" required maxlength="3" />
+                                <input id="cvv" class="input-field" type="text" name="cvv" title="CVV" placeholder="CVV"
+                                    required maxlength="3" />
                             </label>
                         </div>
                         <button type="submit" class="checkout-btn">Confirmar pago</button>
@@ -236,7 +249,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numero_tarjeta'])) {
         // Asignar el plan seleccionado al campo oculto y abrir el modal
         const selectPlanButtons = document.querySelectorAll(".select-plan");
         selectPlanButtons.forEach(button => {
-            button.addEventListener("click", function() {
+            button.addEventListener("click", function () {
                 const planId = this.getAttribute("data-plan");
                 planIdInput.value = planId;
                 modal.style.display = "block";
@@ -244,19 +257,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numero_tarjeta'])) {
         });
 
         // Cerrar el modal al hacer clic en la "x"
-        closeButton.onclick = function() {
+        closeButton.onclick = function () {
             modal.style.display = "none";
         };
 
         // Cerrar el modal si se hace clic fuera de él
-        window.onclick = function(event) {
+        window.onclick = function (event) {
             if (event.target == modal) {
                 modal.style.display = "none";
             }
         };
 
         // Validación del formulario
-        document.getElementById("paymentForm").addEventListener("submit", function(e) {
+        document.getElementById("paymentForm").addEventListener("submit", function (e) {
             const numeroTarjeta = document.getElementById("numero_tarjeta").value;
             const fechaVencimiento = document.getElementById("fecha_vencimiento").value;
             const cvv = document.getElementById("cvv").value;
@@ -270,8 +283,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numero_tarjeta'])) {
 
             // Validar la fecha de vencimiento
             const hoy = new Date();
-            const fechaVencimientoDate = new Date(fechaVencimiento);
-            if (fechaVencimientoDate <= hoy) {
+            const [mes, año] = fechaVencimiento.split('/');
+
+            // Verificar que mes y año sean números válidos
+            if (!mes || !año || isNaN(mes) || isNaN(año) || mes < 1 || mes > 12) {
+                alert("La fecha de vencimiento no es válida.");
+                e.preventDefault();
+                return;
+            }
+
+            // Crear una fecha para el último día del mes de la fecha de vencimiento
+            const ultimoDiaMes = new Date(`20${año}`, mes, 0); // Año asumido como 20XX
+            if (ultimoDiaMes < hoy) {
                 alert("La fecha de vencimiento de la tarjeta no es válida.");
                 e.preventDefault();
                 return;
@@ -283,12 +306,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['numero_tarjeta'])) {
                 e.preventDefault();
                 return;
             }
-
-            // Confirmación de pago
-            if (!confirm("¿Está seguro de que desea proceder con el pago?")) {
-                e.preventDefault();
-            }
         });
     </script>
 </body>
+
 </html>

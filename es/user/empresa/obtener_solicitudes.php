@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
 
 // Verificar si el usuario está logueado y es una empresa
 if (!isset($_SESSION['user_id']) || $_SESSION['user_role'] !== 'EMP') {
@@ -15,7 +15,7 @@ $estatus = isset($_GET['estatus']) ? $_GET['estatus'] : null;
 
 
 // Obtener el número de la empresa asociada al usuario
-$query_empresa = "SELECT numero FROM Empresa WHERE usuario = $user_id";
+$query_empresa = "SELECT numero FROM empresa WHERE usuario = $user_id";
 $result_empresa = mysqli_query($conexion, $query_empresa);
 
 if (mysqli_num_rows($result_empresa) == 0) {
@@ -32,8 +32,9 @@ $sql = "SELECT s.*, p.nombre, p.primerApellido, p.segundoApellido, p.numTel, v.t
         FROM solicitud s
         INNER JOIN prospecto AS p ON s.prospecto = p.numero
         INNER JOIN vacante AS v on s.vacante = v.numero
-        INNER JOIN estatus_Solicitud AS e ON s.estatus = e.codigo
-        WHERE v.empresa = $empresa_id AND s.es_cancelada = false";
+        INNER JOIN estatus_solicitud AS e ON s.estatus = e.codigo
+        WHERE v.empresa = $empresa_id AND s.es_cancelada = false
+        ORDER BY s.fechaSolicitud DESC";
 
 // Filtrar por vacante si se especifica
 if ($vacante_id) {

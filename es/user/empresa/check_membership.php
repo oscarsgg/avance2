@@ -1,7 +1,7 @@
 <?php
 // check_membership.php
 
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
 
 if (!isset($_SESSION['user_id'])) {
     header("Location: login.php");
@@ -11,7 +11,7 @@ if (!isset($_SESSION['user_id'])) {
 $user_id = $_SESSION['user_id'];
 
 // Obtener el número de la empresa asociada al usuario
-$query_empresa = "SELECT numero FROM Empresa WHERE usuario = $user_id";
+$query_empresa = "SELECT numero FROM empresa WHERE usuario = $user_id";
 $result_empresa = mysqli_query($conexion, $query_empresa);
 
 if (mysqli_num_rows($result_empresa) == 0) {
@@ -22,7 +22,7 @@ $empresa = mysqli_fetch_assoc($result_empresa);
 $empresa_id = $empresa['numero'];
 
 // Verificar el estado de la membresía
-$query = "SELECT fechaVencimiento FROM Membresia WHERE empresa = $empresa_id ORDER BY fechaVencimiento DESC LIMIT 1";
+$query = "SELECT fechaVencimiento FROM membresia WHERE empresa = $empresa_id ORDER BY fechaVencimiento DESC LIMIT 1";
 $result = mysqli_query($conexion, $query);
 $membresia = mysqli_fetch_assoc($result);
 

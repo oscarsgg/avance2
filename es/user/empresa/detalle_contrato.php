@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
 
 // Verificar si el usuario está logueado y tiene permiso para ver este contrato
 if (!isset($_SESSION['user_id']) || ($_SESSION['user_role'] !== 'PRO' && $_SESSION['user_role'] !== 'EMP')) {
@@ -23,11 +23,11 @@ $query = "SELECT c.*, v.titulo AS vacante_titulo, v.es_directo, v.empresa AS emp
                  e.primerApellidoCont AS empresa_primerApellidoCont, e.segundoApellidoCont AS empresa_segundoApellidoCont,
                  p.nombre AS prospecto_nombre, p.primerApellido AS prospecto_primerApellido,
                  p.segundoApellido AS prospecto_segundoApellido, tc.nombre AS tipo_contrato_nombre
-          FROM Contrato c
-          JOIN Vacante v ON c.vacante = v.numero
-          JOIN Empresa e ON v.empresa = e.numero
-          JOIN Prospecto p ON c.prospecto = p.numero
-          JOIN Tipo_Contrato tc ON c.tipo_contrato = tc.codigo
+          FROM contrato AS c
+          INNER JOIN vacante AS v ON c.vacante = v.numero
+          INNER JOIN empresa AS e ON v.empresa = e.numero
+          INNER JOIN prospecto AS p ON c.prospecto = p.numero
+          INNER JOIN tipo_contrato AS tc ON c.tipo_contrato = tc.codigo
           WHERE c.numero = ?";
 
 $stmt = $conexion->prepare($query);
@@ -41,7 +41,7 @@ if (!$contrato) {
 }
 
 // Obtener los requerimientos de la vacante
-$query_req = "SELECT descripcion FROM Requerimiento WHERE vacante = ?";
+$query_req = "SELECT descripcion FROM requerimiento WHERE vacante = ?";
 $stmt_req = $conexion->prepare($query_req);
 $stmt_req->bind_param("i", $contrato['vacante']);
 $stmt_req->execute();
@@ -175,14 +175,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['firma_empresa']) && $_SESSION['user_role'] === 'EMP') {
         $firma_empresa = $_POST['firma_empresa'];
         // Guardar la firma de la empresa en la base de datos
-        $query = "UPDATE Contrato SET firma_empresa = ? WHERE numero = ?";
+        $query = "UPDATE contrato SET firma_empresa = ? WHERE numero = ?";
         $stmt = $conexion->prepare($query);
         $stmt->bind_param("si", $firma_empresa, $contrato_id);
         $stmt->execute();
     } elseif (isset($_POST['firma_prospecto']) && $_SESSION['user_role'] === 'PRO') {
         $firma_prospecto = $_POST['firma_prospecto'];
         // Guardar la firma del prospecto en la base de datos
-        $query = "UPDATE Contrato SET firma_prospecto = ? WHERE numero = ?";
+        $query = "UPDATE contrato SET firma_prospecto = ? WHERE numero = ?";
         $stmt = $conexion->prepare($query);
         $stmt->bind_param("si", $firma_prospecto, $contrato_id);
         $stmt->execute();
@@ -190,7 +190,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 // Obtener las firmas guardadas
-$query = "SELECT firma_empresa, firma_prospecto FROM Contrato WHERE numero = ?";
+$query = "SELECT firma_empresa, firma_prospecto FROM contrato WHERE numero = ?";
 $stmt = $conexion->prepare($query);
 $stmt->bind_param("i", $contrato_id);
 $stmt->execute();

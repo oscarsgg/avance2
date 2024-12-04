@@ -401,7 +401,7 @@
                 </div>
                 <div class="head">
                     <div class="user-img">
-                        <img src="img/user.jpg" alt="No photo">
+                        <img src="img/default.jpg" alt="No photo">
                     </div>
                     <div class="user-details">
                         <p class="title">Experto en almejas</p>

@@ -1,6 +1,6 @@
 <?php
 session_start();
-include_once($_SERVER['DOCUMENT_ROOT'] . '/Outsourcing/config.php');
+include_once('../../../../Outsourcing/config.php');
 require_once 'check_membership.php';
 
 // Verificar si el usuario está logueado y es una empresa
@@ -70,7 +70,7 @@ if ($_SERVER["REQUEST_METHOD"] == "POST") {
 
             // Insertar carreras solicitadas
             if (!empty($carreras_solicitadas)) {
-                $query_carrera = "INSERT INTO csarreras_solicitadas (vacante, carrera) VALUES (?, ?)";
+                $query_carrera = "INSERT INTO carreras_solicitadas (vacante, carrera) VALUES (?, ?)";
                 $stmt_carrera = mysqli_prepare($conexion, $query_carrera);
                 foreach ($carreras_solicitadas as $carrera) {
                     mysqli_stmt_bind_param($stmt_carrera, "is", $vacante_id, $carrera);
